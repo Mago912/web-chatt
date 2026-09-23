@@ -35,6 +35,12 @@ switch ($action) {
     case 'rate':
         rateConversation();
         break;
+    case 'update':
+        updateConversation();
+        break;
+    case 'delete':
+        deleteConversation();
+        break;
     default:
         echo json_encode(['success' => false, 'message' => 'Acción no válida']);
 }
@@ -311,5 +317,122 @@ function rateConversation() {
     $stmt->execute([$score, $id]);
     
     echo json_encode(['success' => true, 'message' => 'Calificación registrada']);
+}
+
+/**
+ * UPDATE - Actualizar conversación
+ */
+function updateConversation() {
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        http_response_code(405);
+        echo json_encode(['success' => false, 'message' => 'Método no permitido']);
+        return;
+    }
+    
+    $data = json_decode(file_get_contents('php://input'), true);
+    $id = $data['id'] ?? null;
+    
+    if (!$id) {
+        echo json_encode(['success' => false, 'message' => 'ID requerido']);
+        return;
+    }
+    
+    $pdo = getDB();
+    
+    // Verificar que existe
+    $stmt = $pdo->prepare("SELECT id FROM conversations WHERE id = ?");
+    $stmt->execute([$id]);
+    if (!$stmt->fetch()) {
+        echo json_encode(['success' => false, 'message' => 'Conversación no encontrada']);
+        return;
+    }
+    
+    $updates = [];
+    $params = [];
+    
+    if (isset($data['subject'])) {
+        $updates[] = "subject = ?";
+        $params[] = trim($data['subject']);
+    }
+    if (isset($data['reason'])) {
+        $updates[] = "reason = ?";
+        $params[] = trim($data['reason']);
+    }
+    if (isset($data['priority'])) {
+        $validPriority = ['low', 'medium', 'high', 'critical'];
+        if (in_array($data['priority'], $validPriority)) {
+            $updates[] = "priority = ?";
+            $params[] = $data['priority'];
+        }
+    }
+    if (isset($data['agent_id'])) {
+        $updates[] = "agent_id = ?";
+        $params[] = $data['agent_id'];
+    }
+    
+    if (empty($updates)) {
+        echo json_encode(['success' => false, 'message' => 'No hay datos para actualizar']);
+        return;
+    }
+    
+    $params[] = $id;
+    $sql = "UPDATE conversations SET " . implode(', ', $updates) . " WHERE id = ?";
+    
+    try {
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        
+        echo json_encode(['success' => true, 'message' => 'Conversación actualizada exitosamente']);
+    } catch (PDOException $e) {
+        echo json_encode(['success' => false, 'message' => 'Error al actualizar la conversación']);
+    }
+}
+
+/**
+ * DELETE - Eliminar conversación
+ */
+function deleteConversation() {
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        http_response_code(405);
+        echo json_encode(['success' => false, 'message' => 'Método no permitido']);
+        return;
+    }
+    
+    $data = json_decode(file_get_contents('php://input'), true);
+    $id = $data['id'] ?? null;
+    
+    if (!$id) {
+        echo json_encode(['success' => false, 'message' => 'ID requerido']);
+        return;
+    }
+    
+    $pdo = getDB();
+    
+    // Verificar que existe
+    $stmt = $pdo->prepare("SELECT id FROM conversations WHERE id = ?");
+    $stmt->execute([$id]);
+    if (!$stmt->fetch()) {
+        echo json_encode(['success' => false, 'message' => 'Conversación no encontrada']);
+        return;
+    }
+    
+    try {
+        $pdo->beginTransaction();
+        
+        // Eliminar mensajes primero (por CASCADE)
+        $stmt = $pdo->prepare("DELETE FROM messages WHERE conversation_id = ?");
+        $stmt->execute([$id]);
+        
+        // Eliminar conversación
+        $stmt = $pdo->prepare("DELETE FROM conversations WHERE id = ?");
+        $stmt->execute([$id]);
+        
+        $pdo->commit();
+        
+        echo json_encode(['success' => true, 'message' => 'Conversación eliminada exitosamente']);
+    } catch (PDOException $e) {
+        $pdo->rollBack();
+        echo json_encode(['success' => false, 'message' => 'Error al eliminar la conversación']);
+    }
 }
 ?>

@@ -21,6 +21,12 @@ switch ($action) {
     case 'create':
         createReview();
         break;
+    case 'update':
+        updateReview();
+        break;
+    case 'delete':
+        deleteReview();
+        break;
     case 'stats':
         getQualityStats();
         break;
@@ -106,5 +112,101 @@ function getQualityStats() {
             'by_agent' => $by_agent
         ]
     ]);
+}
+
+/**
+ * UPDATE - Actualizar evaluación de calidad
+ */
+function updateReview() {
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        http_response_code(405);
+        echo json_encode(['success' => false, 'message' => 'Método no permitido']);
+        return;
+    }
+    
+    $data = json_decode(file_get_contents('php://input'), true);
+    $id = $data['id'] ?? null;
+    
+    if (!$id) {
+        echo json_encode(['success' => false, 'message' => 'ID requerido']);
+        return;
+    }
+    
+    $pdo = getDB();
+    
+    // Verificar que existe
+    $stmt = $pdo->prepare("SELECT id FROM quality_reviews WHERE id = ?");
+    $stmt->execute([$id]);
+    if (!$stmt->fetch()) {
+        echo json_encode(['success' => false, 'message' => 'Evaluación no encontrada']);
+        return;
+    }
+    
+    $updates = [];
+    $params = [];
+    
+    if (isset($data['score']) && $data['score'] >= 1 && $data['score'] <= 10) {
+        $updates[] = "score = ?";
+        $params[] = $data['score'];
+    }
+    if (isset($data['comments'])) {
+        $updates[] = "comments = ?";
+        $params[] = trim($data['comments']);
+    }
+    
+    if (empty($updates)) {
+        echo json_encode(['success' => false, 'message' => 'No hay datos para actualizar']);
+        return;
+    }
+    
+    $params[] = $id;
+    $sql = "UPDATE quality_reviews SET " . implode(', ', $updates) . " WHERE id = ?";
+    
+    try {
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        
+        echo json_encode(['success' => true, 'message' => 'Evaluación actualizada exitosamente']);
+    } catch (PDOException $e) {
+        echo json_encode(['success' => false, 'message' => 'Error al actualizar la evaluación']);
+    }
+}
+
+/**
+ * DELETE - Eliminar evaluación de calidad
+ */
+function deleteReview() {
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        http_response_code(405);
+        echo json_encode(['success' => false, 'message' => 'Método no permitido']);
+        return;
+    }
+    
+    $data = json_decode(file_get_contents('php://input'), true);
+    $id = $data['id'] ?? null;
+    
+    if (!$id) {
+        echo json_encode(['success' => false, 'message' => 'ID requerido']);
+        return;
+    }
+    
+    $pdo = getDB();
+    
+    // Verificar que existe
+    $stmt = $pdo->prepare("SELECT id FROM quality_reviews WHERE id = ?");
+    $stmt->execute([$id]);
+    if (!$stmt->fetch()) {
+        echo json_encode(['success' => false, 'message' => 'Evaluación no encontrada']);
+        return;
+    }
+    
+    try {
+        $stmt = $pdo->prepare("DELETE FROM quality_reviews WHERE id = ?");
+        $stmt->execute([$id]);
+        
+        echo json_encode(['success' => true, 'message' => 'Evaluación eliminada exitosamente']);
+    } catch (PDOException $e) {
+        echo json_encode(['success' => false, 'message' => 'Error al eliminar la evaluación']);
+    }
 }
 ?>
