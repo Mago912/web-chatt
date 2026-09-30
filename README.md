@@ -1,4 +1,30 @@
-# Nexo Web Chat - Sistema de Atención al Cliente
+# 🚀 Nexo Web Chat - Sistema de Atención al Cliente
+
+<div align="center">
+
+![PHP](https://img.shields.io/badge/PHP-8.0+-777BB4?style=for-the-badge&logo=php&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-8.0+-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
+![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)
+![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
+
+**Sistema profesional de atención al cliente mediante chat web omnicanal**
+
+[Características](#-características) • [Instalación](#-instalación) • [Uso](#-uso) • [Documentación](#-documentación)
+
+</div>
+
+---
+
+## 📋 Descripción
+
+**Nexo Web Chat** es una plataforma completa de atención al cliente desarrollada para **Frávega** (retail argentino de electrónica). Permite gestionar conversaciones en tiempo real entre clientes y agentes, con funcionalidades avanzadas como respuestas rápidas, base de conocimiento, escalaciones y métricas.
+
+### 🎯 Casos de Uso
+- **Preventa:** Consultas de stock, promociones, financiación
+- **Logística:** Seguimiento de pedidos, demoras, reprogramaciones
+- **Postventa:** Reclamos, cambios, devoluciones, garantías
+- **Soporte:** Instalaciones, servicio técnico, facturación
 
 Sistema completo de atención al cliente mediante chat web, desarrollado con **PHP 8+**, **MySQL 8+**, **HTML5**, **CSS3** y **JavaScript ES6+**.
 
