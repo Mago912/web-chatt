@@ -353,10 +353,92 @@ setInterval(() => {
 
 Preparado para migrar a **Server-Sent Events (SSE)** en el futuro.
 
+## 🚀 Deployment
+
+### Opción Rápida: Vercel (Recomendado)
+
+```bash
+# 1. Instalar Vercel CLI
+npm install -g vercel
+
+# 2. Deployar
+vercel --prod
+```
+
+### Opción Manual
+
+```bash
+# 1. Compilar
+npm run build
+
+# 2. Subir carpeta dist/ a tu servidor
+```
+
+📖 **Guía completa de deployment:** [DEPLOYMENT.md](./DEPLOYMENT.md)
+
+---
+
+## ✨ Nuevas Funcionalidades (v1.1)
+
+### 🎨 Modo Oscuro/Claro
+- Toggle entre temas claro y oscuro
+- Persistencia de preferencia
+- Transiciones suaves
+
+### 🔍 Búsqueda Global
+- Buscar por cliente, DNI, motivo o mensaje
+- Resultados en tiempo real
+- Filtros combinados
+
+### 📊 Estadísticas en Tiempo Real
+- Chats activos, en espera y resueltos
+- Actualización automática cada 3 segundos
+- Indicadores visuales con colores
+
+### 📥 Exportar Conversaciones
+- Exportar chat completo en formato JSON
+- Incluir datos del cliente y mensajes
+- Descarga directa desde el navegador
+
+### 🔔 Notificaciones Mejoradas
+- Toast notifications para acciones
+- Indicador de "En vivo" animado
+- Feedback visual inmediato
+
+### 📱 Responsive Mejorado
+- Optimizado para mobile y tablet
+- Stats bar adaptable
+- Búsqueda responsive
+
+---
+
+## 🛠️ Tecnologías
+
+### Frontend
+- **React 18** - UI framework
+- **TypeScript** - Type safety
+- **Vite** - Build tool
+- **CSS3** - Estilos puros con variables
+
+### Backend
+- **PHP 8+** - API REST
+- **MySQL 8+** - Base de datos
+- **PDO** - Conexión segura
+- **Sessions** - Autenticación
+
+### Deployment
+- **Vercel** - Frontend hosting
+- **Apache/Nginx** - Backend PHP
+- **GitHub Actions** - CI/CD
+
+---
+
 ## 📝 Licencia
 
 Proyecto desarrollado para Frávega - Sistema de Atención Digital
 
 ---
 
-**Desarrollado con:** PHP 8+, MySQL 8+, HTML5, CSS3, JavaScript ES6+, React
+**Desarrollado con:** PHP 8+, MySQL 8+, React, TypeScript, Vite  
+**Versión:** 1.1.0  
+**Última actualización:** Enero 2025

@@ -6,6 +6,7 @@ import './index.css';
 // ==========================================
 type View = 'dashboard' | 'chat' | 'customers' | 'orders' | 'users' | 'escalations' | 'knowledge' | 'quick-replies' | 'metrics' | 'quality' | 'organigrama';
 type MsgType = 'cliente' | 'agente' | 'sistema' | 'bot';
+type Theme = 'light' | 'dark';
 
 interface Mensaje {
   id: number;
@@ -178,6 +179,17 @@ function App() {
   const [chatFilter, setChatFilter] = useState<string>('todos');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
   const [notification, setNotification] = useState<string | null>(null);
+  const [theme, setTheme] = useState<Theme>('light');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [showSearch, setShowSearch] = useState<boolean>(false);
+  const [showExportModal, setShowExportModal] = useState<boolean>(false);
+  const [stats, setStats] = useState({
+    totalChats: 0,
+    activeChats: 0,
+    waitingChats: 0,
+    resolvedChats: 0,
+    avgResponseTime: '0m 0s'
+  });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const autoReplyTimeoutRef = useRef<number | null>(null);
 
@@ -309,6 +321,88 @@ function App() {
   };
 
   // ==========================================
+  // TOGGLE TEMA OSCURO/CLARO
+  // ==========================================
+  const toggleTheme = () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+    document.documentElement.setAttribute('data-theme', newTheme);
+    showNotification(`🎨 Tema ${newTheme === 'dark' ? 'oscuro' : 'claro'} activado`);
+  };
+
+  // ==========================================
+  // BÚSQUEDA GLOBAL
+  // ==========================================
+  const filteredConversaciones = conversaciones.filter(c => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      c.cliente.toLowerCase().includes(query) ||
+      c.motivo.toLowerCase().includes(query) ||
+      c.ultimoMsg.toLowerCase().includes(query) ||
+      c.dni.includes(query)
+    );
+  });
+
+  // ==========================================
+  // EXPORTAR CONVERSACIÓN
+  // ==========================================
+  const exportConversation = () => {
+    if (!selectedChat) return;
+    
+    const exportData = {
+      cliente: selectedChat.cliente,
+      dni: selectedChat.dni,
+      email: selectedChat.email,
+      motivo: selectedChat.motivo,
+      estado: selectedChat.estado,
+      fecha: new Date().toLocaleString('es-AR'),
+      mensajes: selectedChat.mensajes.map(m => ({
+        tipo: m.tipo,
+        emisor: m.emisor || 'Sistema',
+        texto: m.texto,
+        hora: m.hora
+      }))
+    };
+    
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `chat-${selectedChat.cliente.replace(/\s/g, '-')}-${Date.now()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    setShowExportModal(false);
+    showNotification('✅ Conversación exportada');
+  };
+
+  // ==========================================
+  // ACTUALIZAR ESTADÍSTICAS EN TIEMPO REAL
+  // ==========================================
+  useEffect(() => {
+    const updateStats = () => {
+      const activeChats = conversaciones.filter(c => c.estado === 'activo').length;
+      const waitingChats = conversaciones.filter(c => c.estado === 'esperando').length;
+      const resolvedChats = conversaciones.filter(c => c.estado === 'resuelto').length;
+      
+      setStats({
+        totalChats: conversaciones.length,
+        activeChats,
+        waitingChats,
+        resolvedChats,
+        avgResponseTime: '1m 42s' // En producción se calcularía desde la BD
+      });
+    };
+    
+    updateStats();
+    const interval = setInterval(updateStats, 3000);
+    return () => clearInterval(interval);
+  }, [conversaciones]);
+
+  // ==========================================
   // INSERTAR RESPUESTA RÁPIDA
   // ==========================================
   const insertQR = (content: string) => {
@@ -327,8 +421,8 @@ function App() {
     };
   }, []);
 
-  // Filtrar chats
-  const filteredChats = conversaciones.filter(c => {
+  // Filtrar chats (combinando filtro de estado y búsqueda)
+  const filteredChats = filteredConversaciones.filter(c => {
     if (chatFilter === 'todos') return true;
     if (chatFilter === 'esperando') return c.estado === 'esperando';
     if (chatFilter === 'activos') return c.estado === 'activo';
@@ -423,12 +517,56 @@ function App() {
             <div className="topbar-breadcrumb">Atención Digital / <span>Conversaciones</span></div>
           </div>
           <div className="topbar-right">
+            <div className="stats-bar">
+              <div className="stat-item">
+                <span className="stat-label">Activos:</span>
+                <span className="stat-value active">{stats.activeChats}</span>
+              </div>
+              <div className="stat-item">
+                <span className="stat-label">Espera:</span>
+                <span className="stat-value waiting">{stats.waitingChats}</span>
+              </div>
+              <div className="stat-item">
+                <span className="stat-label">Resueltos:</span>
+                <span className="stat-value resolved">{stats.resolvedChats}</span>
+              </div>
+            </div>
+            <button 
+              className="topbar-btn" 
+              onClick={() => setShowSearch(!showSearch)}
+              title="Buscar"
+            >
+              🔍
+            </button>
+            <button 
+              className="topbar-btn" 
+              onClick={toggleTheme}
+              title="Cambiar tema"
+            >
+              {theme === 'light' ? '🌙' : '☀️'}
+            </button>
             <div className="live-indicator">
               <span className="live-dot"></span>
               <span>En vivo</span>
             </div>
           </div>
         </div>
+
+        {/* Barra de búsqueda global */}
+        {showSearch && (
+          <div className="search-bar">
+            <input
+              type="text"
+              placeholder="Buscar por cliente, DNI, motivo o mensaje..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              autoFocus
+            />
+            <button onClick={() => { setSearchQuery(''); setShowSearch(false); }}>
+              ✕
+            </button>
+          </div>
+        )}
 
         {/* Chat Layout */}
         <div className="chat-view">
@@ -495,6 +633,13 @@ function App() {
                   {selectedChat.estado === 'activo' && (
                     <button className="chat-action-btn success" onClick={resolveChat}>✓ Resolver</button>
                   )}
+                  <button 
+                    className="chat-action-btn" 
+                    onClick={() => setShowExportModal(true)} 
+                    title="Exportar conversación"
+                  >
+                    📥 Exportar
+                  </button>
                   <button className="chat-action-btn danger" onClick={() => setShowDeleteConfirm(selectedChat.id)} title="Eliminar chat">🗑️</button>
                 </div>
               </div>
@@ -655,6 +800,32 @@ function App() {
             <div className="modal-footer">
               <button className="btn btn-secondary" onClick={() => setShowDeleteConfirm(null)}>Cancelar</button>
               <button className="btn btn-danger" onClick={() => deleteChat(showDeleteConfirm)}>Eliminar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Export Modal */}
+      {showExportModal && selectedChat && (
+        <div className="modal-overlay" onClick={() => setShowExportModal(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>📥 Exportar conversación</h3>
+              <button className="modal-close" onClick={() => setShowExportModal(false)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <p>Se exportará la conversación completa en formato JSON.</p>
+              <div className="export-preview">
+                <p><strong>Cliente:</strong> {selectedChat.cliente}</p>
+                <p><strong>DNI:</strong> {selectedChat.dni}</p>
+                <p><strong>Motivo:</strong> {selectedChat.motivo}</p>
+                <p><strong>Mensajes:</strong> {selectedChat.mensajes.length}</p>
+                <p><strong>Estado:</strong> {getEstadoLabel(selectedChat.estado)}</p>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={() => setShowExportModal(false)}>Cancelar</button>
+              <button className="btn btn-primary" onClick={exportConversation}>Exportar</button>
             </div>
           </div>
         </div>
