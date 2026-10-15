@@ -4,7 +4,7 @@ import './index.css';
 // ==========================================
 // TIPOS
 // ==========================================
-type View = 'dashboard' | 'chat' | 'customers' | 'orders' | 'users' | 'escalations' | 'knowledge' | 'quick-replies' | 'metrics' | 'quality' | 'organigrama';
+type View = 'dashboard' | 'chat' | 'customers' | 'orders' | 'users' | 'escalations' | 'knowledge' | 'quick-replies' | 'metrics' | 'quality';
 type MsgType = 'cliente' | 'agente' | 'sistema' | 'bot';
 type Theme = 'light' | 'dark';
 
@@ -48,123 +48,75 @@ interface Conversacion {
   clienteEscribiendo?: boolean;
 }
 
-// ==========================================
-// RESPUESTAS AUTOMÁTICAS DEL CLIENTE
-// ==========================================
-const respuestasCliente: Record<string, string[]> = {
-  'Pedido · Demora en entrega': [
-    '¿Y cuánto tiempo más va a demorar?',
-    'Necesito el TV para el finde, ¿pueden acelerar el envío?',
-    '¿Me pueden dar un número de seguimiento?',
-    'Estoy muy preocupado/a, ya pasó la fecha.',
-  ],
-  'Preventa · Consulta de stock': [
-    '¿Y cuál es el precio final con las promos?',
-    '¿Aceptan tarjeta de crédito en cuotas?',
-    '¿Tienen en color negro?',
-    'Perfecto, voy a comprarlo ahora.',
-  ],
-  'Preventa · Promociones bancarias': [
-    '¿Y con qué banco tengo más cuotas?',
-    '¿Aceptan Mercado Pago?',
-    '¿Hay algún descuento pagando en efectivo?',
-    'Gracias, voy a consultar con mi banco.',
-  ],
-  'Postventa · Producto dañado': [
-    '¿Y cuánto tarda el cambio?',
-    '¿Tengo que pagar algo por el envío?',
-    '¿Me pueden dar un número de reclamo?',
-    'Necesito una solución urgente, es para mi casa.',
-  ],
-  'Postventa · Instalación pendiente': [
-    '¿En qué horario pasa el técnico?',
-    '¿Tengo que estar en casa sí o sí?',
-    '¿La instalación tiene costo adicional?',
-    'Ok, quedo atenta al SMS.',
-  ],
-  default: [
-    'Ok, gracias por la información.',
-    '¿Y eso cuánto tarda?',
-    'Perfecto, entendido.',
-    '¿Algo más que necesite saber?',
-    'Muchas gracias por tu ayuda.',
-  ]
-};
+interface Cliente {
+  id: number;
+  nombre: string;
+  dni: string;
+  email: string;
+  telefono: string;
+}
+
+interface Orden {
+  id: number;
+  numero: string;
+  clienteId: number;
+  clienteNombre: string;
+  producto: string;
+  monto: number;
+  estado: string;
+}
+
+interface Usuario {
+  id: number;
+  nombre: string;
+  email: string;
+  rol: string;
+  estado: string;
+}
 
 // ==========================================
-// DATA INICIAL
+// DATA
 // ==========================================
 const conversacionesIniciales: Conversacion[] = [
   {
     id: 1, cliente: 'María González', avatar: 'MG', color: 'blue', dni: '32.456.789', email: 'maria.gonzalez@gmail.com', tel: '+54 11 5542-8891', clienteDesde: 2021, pedidos: 7, casos: 2,
-    pedido: { num: '#10452', producto: 'Smart TV Samsung 50" UHD 4K', monto: 489999, entrega: 'Entrega a domicilio', fecha: '15-17 Ene 2025', estado: 'distributing', estadoLabel: 'En distribución' },
+    pedido: { num: '#10452', producto: 'Smart TV Samsung 50"', monto: 489999, entrega: 'Entrega a domicilio', fecha: '15-17 Ene 2025', estado: 'distributing', estadoLabel: 'En distribución' },
     motivo: 'Pedido · Demora en entrega', estado: 'activo', tiempo: '2m 15s', unread: false,
     ultimoMsg: '¿Me pueden decir dónde está mi pedido?',
     mensajes: [
-      { id: 1, tipo: 'sistema', texto: 'Chat iniciado · Canal: Web fravega.com', hora: '14:32', leido: true },
-      { id: 2, tipo: 'bot', emisor: 'Bot Nexo', texto: '¡Hola! 👋 Soy el asistente virtual de Frávega. ¿En qué puedo ayudarte?', hora: '14:32', leido: true },
-      { id: 3, tipo: 'cliente', emisor: 'María González', texto: 'Hola, compré un Smart TV y no me llegó. Ya pasó la fecha de entrega.', hora: '14:33', leido: true },
-      { id: 4, tipo: 'sistema', texto: '⚡ Transferido a agente: Sofía Ríos', hora: '14:34', leido: true },
-      { id: 5, tipo: 'agente', emisor: 'Sofía Ríos', texto: '¡Hola María! Soy Sofía. Estoy revisando tu pedido ahora mismo.', hora: '14:34', leido: true },
-      { id: 6, tipo: 'cliente', emisor: 'María González', texto: 'Sí, es el #10452. Es el Smart TV Samsung de 50 pulgadas.', hora: '14:35', leido: true },
-      { id: 7, tipo: 'agente', emisor: 'Sofía Ríos', texto: 'Perfecto, ya lo ubiqué. Veo que está "En distribución". Déjame consultar con el centro logístico.', hora: '14:36', leido: true },
+      { id: 1, tipo: 'sistema', texto: 'Chat iniciado', hora: '14:32', leido: true },
+      { id: 2, tipo: 'bot', emisor: 'Bot Nexo', texto: '¡Hola! 👋 Soy el asistente virtual de Frávega.', hora: '14:32', leido: true },
+      { id: 3, tipo: 'cliente', emisor: 'María González', texto: 'Hola, compré un Smart TV y no me llegó.', hora: '14:33', leido: true },
+      { id: 4, tipo: 'agente', emisor: 'Sofía Ríos', texto: '¡Hola María! Soy Sofía. Estoy revisando tu pedido.', hora: '14:34', leido: true },
     ]
   },
   {
     id: 2, cliente: 'Carlos Rodríguez', avatar: 'CR', color: 'green', dni: '28.901.234', email: 'c.rodriguez@outlook.com', tel: '+54 11 4421-3356', clienteDesde: 2019, pedidos: 12, casos: 1,
-    pedido: { num: '#10389', producto: 'Notebook Lenovo IdeaPad 3 15"', monto: 749999, entrega: 'Retiro sucursal Caballito', fecha: '12 Ene 2025', estado: 'preparing', estadoLabel: 'En preparación' },
+    pedido: { num: '#10389', producto: 'Notebook Lenovo IdeaPad 3', monto: 749999, entrega: 'Retiro sucursal', fecha: '12 Ene 2025', estado: 'preparing', estadoLabel: 'En preparación' },
     motivo: 'Preventa · Consulta de stock', estado: 'esperando', tiempo: '4m 02s', unread: true,
-    ultimoMsg: 'Buenas, quiero saber si tienen la notebook en Caballito.',
+    ultimoMsg: '¿Tienen stock de la notebook?',
     mensajes: [
-      { id: 1, tipo: 'sistema', texto: 'Chat iniciado · Canal: Web fravega.com', hora: '14:28', leido: true },
-      { id: 2, tipo: 'bot', emisor: 'Bot Nexo', texto: '¡Hola! 👋 ¿En qué puedo ayudarte?', hora: '14:28', leido: true },
-      { id: 3, tipo: 'cliente', emisor: 'Carlos Rodríguez', texto: 'Hola, quiero comprar la notebook Lenovo IdeaPad 3 pero necesito retirarla hoy de Caballito. ¿Tienen stock?', hora: '14:29', leido: true },
-    ]
-  },
-  {
-    id: 3, cliente: 'Lucía Fernández', avatar: 'LF', color: 'purple', dni: '35.678.432', email: 'lucia.fernandez@yahoo.com', tel: '+54 11 6678-1122', clienteDesde: 2023, pedidos: 3, casos: 0,
-    pedido: null, motivo: 'Preventa · Promociones bancarias', estado: 'esperando', tiempo: '1m 48s', unread: true,
-    ultimoMsg: '¿Qué promos hay con tarjeta de crédito?',
-    mensajes: [
-      { id: 1, tipo: 'sistema', texto: 'Chat iniciado · Canal: Web fravega.com', hora: '14:30', leido: true },
-      { id: 2, tipo: 'bot', emisor: 'Bot Nexo', texto: '¡Hola! 👋 ¿En qué puedo ayudarte?', hora: '14:30', leido: true },
-      { id: 3, tipo: 'cliente', emisor: 'Lucía Fernández', texto: '¿Qué promos hay con tarjeta de crédito? Busco un aire acondicionado.', hora: '14:31', leido: true },
-    ]
-  },
-  {
-    id: 4, cliente: 'Roberto Martínez', avatar: 'RM', color: 'orange', dni: '24.112.567', email: 'r.martinez@gmail.com', tel: '+54 11 3345-7788', clienteDesde: 2020, pedidos: 9, casos: 3,
-    pedido: { num: '#10445', producto: 'Lavarropas Drean Next 8.15', monto: 599999, entrega: 'Entrega a domicilio', fecha: '14 Ene 2025', estado: 'delayed', estadoLabel: 'Demorado' },
-    motivo: 'Postventa · Producto dañado', estado: 'activo', tiempo: '0m 45s', unread: false,
-    ultimoMsg: 'La caja llegó toda abollada.',
-    mensajes: [
-      { id: 1, tipo: 'sistema', texto: 'Chat iniciado · Canal: Web fravega.com', hora: '14:20', leido: true },
-      { id: 2, tipo: 'cliente', emisor: 'Roberto Martínez', texto: 'Me llegó el lavarropas pero está dañado. La caja vino golpeada.', hora: '14:21', leido: true },
-      { id: 3, tipo: 'sistema', texto: '⚡ Transferido a agente: Martín Pereyra', hora: '14:22', leido: true },
-      { id: 4, tipo: 'agente', emisor: 'Martín Pereyra', texto: 'Roberto, lamento lo sucedido. ¿Confirmás tu N° de pedido?', hora: '14:22', leido: true },
-      { id: 5, tipo: 'cliente', emisor: 'Roberto Martínez', texto: 'Es el #10445', hora: '14:23', leido: true },
-    ]
-  },
-  {
-    id: 5, cliente: 'Ana López', avatar: 'AL', color: 'pink', dni: '30.234.890', email: 'ana.lopez@hotmail.com', tel: '+54 11 5567-9900', clienteDesde: 2022, pedidos: 5, casos: 1,
-    pedido: { num: '#10298', producto: 'Aire Acond. Samsung WindFree', monto: 899999, entrega: 'Entrega + Instalación', fecha: '10 Ene 2025', estado: 'delivered', estadoLabel: 'Entregado' },
-    motivo: 'Postventa · Instalación pendiente', estado: 'resuelto', tiempo: '-', unread: false,
-    ultimoMsg: '¡Muchas gracias!',
-    mensajes: [
-      { id: 1, tipo: 'sistema', texto: 'Chat iniciado', hora: '13:45', leido: true },
-      { id: 2, tipo: 'cliente', emisor: 'Ana López', texto: 'Hola, me entregaron el aire pero no vino el técnico.', hora: '13:46', leido: true },
-      { id: 3, tipo: 'agente', emisor: 'Sofía Ríos', texto: '¡Hola Ana! Voy a reagendar la instalación.', hora: '13:47', leido: true },
-      { id: 4, tipo: 'sistema', texto: '✅ Caso resuelto · CSAT: 5/5 ⭐', hora: '13:52', leido: true },
+      { id: 1, tipo: 'sistema', texto: 'Chat iniciado', hora: '14:28', leido: true },
+      { id: 2, tipo: 'cliente', emisor: 'Carlos Rodríguez', texto: 'Hola, ¿tienen stock de la notebook?', hora: '14:29', leido: true },
     ]
   },
 ];
 
-const respuestasRapidas = [
-  { id: 1, atajo: '/saludo', titulo: 'Saludo inicial', contenido: '¡Hola! 👋 Soy Sofía, asesora de Frávega. Estoy revisando tu consulta. ¿Podrías confirmarme tu número de pedido?', categoria: 'Saludo' },
-  { id: 2, atajo: '/estado', titulo: 'Consulta estado pedido', contenido: 'Estoy consultando el estado de tu pedido en nuestro sistema logístico. Te pido un momento.', categoria: 'Pedido' },
-  { id: 3, atajo: '/demora', titulo: 'Demora en entrega', contenido: 'Comprendo tu frustración. Voy a escalar tu caso al área de logística para priorizar tu entrega.', categoria: 'Envíos' },
-  { id: 4, atajo: '/retiro', titulo: 'Retiro por tercero', contenido: 'Para retiro por tercero necesitás:\n• Autorización firmada\n• Copia DNI del titular\n• Código de compra\n• DNI original', categoria: 'Retiro' },
-  { id: 5, atajo: '/promos', titulo: 'Promociones bancarias', contenido: 'Promociones vigentes:\n🏦 Santander: 3, 6 y 12 cuotas SI\n🏦 Galicia: 3 y 6 SI + 10%\n🏦 BBVA: 12 y 18 SI', categoria: 'Pagos' },
-  { id: 6, atajo: '/cierre', titulo: 'Cierre de chat', contenido: '¡Fue un placer atenderte! 😊 Si tenés otra consulta, no dudes en contactarnos. ¡Excelente día!', categoria: 'Despedida' },
+const clientesIniciales: Cliente[] = [
+  { id: 1, nombre: 'María González', dni: '32.456.789', email: 'maria.gonzalez@gmail.com', telefono: '+54 11 5542-8891' },
+  { id: 2, nombre: 'Carlos Rodríguez', dni: '28.901.234', email: 'c.rodriguez@outlook.com', telefono: '+54 11 4421-3356' },
+  { id: 3, nombre: 'Lucía Fernández', dni: '35.678.432', email: 'lucia.fernandez@yahoo.com', telefono: '+54 11 6678-1122' },
+];
+
+const ordenesIniciales: Orden[] = [
+  { id: 1, numero: '#10452', clienteId: 1, clienteNombre: 'María González', producto: 'Smart TV Samsung 50"', monto: 489999, estado: 'shipping' },
+  { id: 2, numero: '#10389', clienteId: 2, clienteNombre: 'Carlos Rodríguez', producto: 'Notebook Lenovo', monto: 749999, estado: 'preparing' },
+];
+
+const usuariosIniciales: Usuario[] = [
+  { id: 1, nombre: 'Sofía Ríos', email: 'sofia@fravega.com', rol: 'agent', estado: 'available' },
+  { id: 2, nombre: 'Martín Pereyra', email: 'martin@fravega.com', rol: 'agent', estado: 'busy' },
+  { id: 3, nombre: 'Nicolás Romero', email: 'nicolas@fravega.com', rol: 'supervisor', estado: 'available' },
 ];
 
 // ==========================================
@@ -172,282 +124,423 @@ const respuestasRapidas = [
 // ==========================================
 function App() {
   const [currentView, setCurrentView] = useState<View>('chat');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [conversaciones, setConversaciones] = useState<Conversacion[]>(conversacionesIniciales);
   const [selectedChatId, setSelectedChatId] = useState<number>(1);
   const [messageInput, setMessageInput] = useState('');
-  const [showQR, setShowQR] = useState(false);
-  const [chatFilter, setChatFilter] = useState<string>('todos');
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
-  const [notification, setNotification] = useState<string | null>(null);
   const [theme, setTheme] = useState<Theme>('light');
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [showSearch, setShowSearch] = useState<boolean>(false);
-  const [showExportModal, setShowExportModal] = useState<boolean>(false);
-  const [stats, setStats] = useState({
-    totalChats: 0,
-    activeChats: 0,
-    waitingChats: 0,
-    resolvedChats: 0,
-    avgResponseTime: '0m 0s'
-  });
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const autoReplyTimeoutRef = useRef<number | null>(null);
+  const [clientes, setClientes] = useState<Cliente[]>(clientesIniciales);
+  const [ordenes, setOrdenes] = useState<Orden[]>(ordenesIniciales);
+  const [usuarios, setUsuarios] = useState<Usuario[]>(usuariosIniciales);
+  const [notification, setNotification] = useState<string | null>(null);
 
   const selectedChat = conversaciones.find(c => c.id === selectedChatId) || conversaciones[0];
 
-  // Auto-scroll al final del chat
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [selectedChat?.mensajes.length, selectedChat?.clienteEscribiendo]);
-
-  // Notificación temporal
   const showNotification = (msg: string) => {
     setNotification(msg);
     setTimeout(() => setNotification(null), 3000);
   };
 
-  // ==========================================
-  // ENVIAR MENSAJE DEL AGENTE
-  // ==========================================
-  const sendMessage = () => {
-    if (!messageInput.trim() || !selectedChat) return;
-    
-    const newMsg: Mensaje = {
-      id: Date.now(),
-      tipo: 'agente',
-      emisor: 'Sofía Ríos',
-      texto: messageInput,
-      hora: new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }),
-      leido: false
-    };
-
-    // Actualizar conversación con el nuevo mensaje
-    setConversaciones(prev => prev.map(c => 
-      c.id === selectedChatId 
-        ? { ...c, mensajes: [...c.mensajes, newMsg], ultimoMsg: messageInput, estado: 'activo' as const }
-        : c
-    ));
-    setMessageInput('');
-    setShowQR(false);
-
-    // Simular que el cliente lee el mensaje después de 2 segundos
-    setTimeout(() => {
-      setConversaciones(prev => prev.map(c => 
-        c.id === selectedChatId 
-          ? { ...c, mensajes: c.mensajes.map(m => m.id === newMsg.id ? { ...m, leido: true } : m) }
-          : c
-      ));
-    }, 2000);
-
-    // Simular respuesta automática del cliente después de 3-6 segundos
-    if (selectedChat.estado !== 'resuelto') {
-      const delay = 3000 + Math.random() * 3000;
-      
-      // Mostrar indicador de "escribiendo"
-      setTimeout(() => {
-        setConversaciones(prev => prev.map(c => 
-          c.id === selectedChatId ? { ...c, clienteEscribiendo: true } : c
-        ));
-      }, delay - 1500);
-
-      autoReplyTimeoutRef.current = window.setTimeout(() => {
-        // Obtener respuesta contextual
-        const respuestas = respuestasCliente[selectedChat.motivo] || respuestasCliente.default;
-        const respuestaAleatoria = respuestas[Math.floor(Math.random() * respuestas.length)];
-        
-        const clientMsg: Mensaje = {
-          id: Date.now(),
-          tipo: 'cliente',
-          emisor: selectedChat.cliente,
-          texto: respuestaAleatoria,
-          hora: new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }),
-          leido: true
-        };
-
-        setConversaciones(prev => prev.map(c => 
-          c.id === selectedChatId 
-            ? { ...c, mensajes: [...c.mensajes, clientMsg], ultimoMsg: respuestaAleatoria, clienteEscribiendo: false }
-            : c
-        ));
-      }, delay);
-    }
-  };
-
-  // ==========================================
-  // TOMAR CHAT
-  // ==========================================
-  const takeChat = (id: number) => {
-    setConversaciones(prev => prev.map(c => 
-      c.id === id ? { ...c, estado: 'activo' as const, unread: false, tiempo: '0m 00s' } : c
-    ));
-    showNotification('✅ Chat tomado correctamente');
-  };
-
-  // ==========================================
-  // RESOLVER CHAT
-  // ==========================================
-  const resolveChat = () => {
-    const systemMsg: Mensaje = {
-      id: Date.now(),
-      tipo: 'sistema',
-      texto: '✅ Conversación resuelta · CSAT: 5/5 ⭐',
-      hora: new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }),
-      leido: true
-    };
-
-    setConversaciones(prev => prev.map(c => 
-      c.id === selectedChatId 
-        ? { ...c, estado: 'resuelto' as const, mensajes: [...c.mensajes, systemMsg], clienteEscribiendo: false }
-        : c
-    ));
-    showNotification('✅ Chat resuelto');
-  };
-
-  // ==========================================
-  // ELIMINAR CHAT
-  // ==========================================
-  const deleteChat = (id: number) => {
-    setConversaciones(prev => prev.filter(c => c.id !== id));
-    setShowDeleteConfirm(null);
-    
-    // Si eliminamos el chat seleccionado, ir al primero disponible
-    if (id === selectedChatId) {
-      const remaining = conversaciones.filter(c => c.id !== id);
-      if (remaining.length > 0) {
-        setSelectedChatId(remaining[0].id);
-      }
-    }
-    showNotification('🗑️ Chat eliminado');
-  };
-
-  // ==========================================
-  // TOGGLE TEMA OSCURO/CLARO
-  // ==========================================
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
     document.documentElement.setAttribute('data-theme', newTheme);
-    showNotification(`🎨 Tema ${newTheme === 'dark' ? 'oscuro' : 'claro'} activado`);
   };
 
   // ==========================================
-  // BÚSQUEDA GLOBAL
+  // RENDER VIEWS
   // ==========================================
-  const filteredConversaciones = conversaciones.filter(c => {
-    if (!searchQuery) return true;
-    const query = searchQuery.toLowerCase();
+  const renderView = () => {
+    switch (currentView) {
+      case 'dashboard': return <DashboardView />;
+      case 'chat': return <ChatView />;
+      case 'customers': return <CustomersView />;
+      case 'orders': return <OrdersView />;
+      case 'users': return <UsersView />;
+      case 'escalations': return <EscalationsView />;
+      case 'knowledge': return <KnowledgeView />;
+      case 'quick-replies': return <QuickRepliesView />;
+      case 'metrics': return <MetricsView />;
+      case 'quality': return <QualityView />;
+      default: return <DashboardView />;
+    }
+  };
+
+  // ==========================================
+  // DASHBOARD VIEW
+  // ==========================================
+  function DashboardView() {
     return (
-      c.cliente.toLowerCase().includes(query) ||
-      c.motivo.toLowerCase().includes(query) ||
-      c.ultimoMsg.toLowerCase().includes(query) ||
-      c.dni.includes(query)
+      <div className="view-container">
+        <div className="view-header">
+          <h1>Dashboard</h1>
+          <p>Resumen en tiempo real</p>
+        </div>
+        <div className="kpi-grid">
+          <div className="kpi-card">
+            <div className="kpi-icon blue">💬</div>
+            <div className="kpi-content">
+              <div className="kpi-value">{conversaciones.filter(c => c.estado === 'activo').length}</div>
+              <div className="kpi-label">Chats Activos</div>
+            </div>
+          </div>
+          <div className="kpi-card">
+            <div className="kpi-icon orange">⏳</div>
+            <div className="kpi-content">
+              <div className="kpi-value">{conversaciones.filter(c => c.estado === 'esperando').length}</div>
+              <div className="kpi-label">En Espera</div>
+            </div>
+          </div>
+          <div className="kpi-card">
+            <div className="kpi-icon green">✅</div>
+            <div className="kpi-content">
+              <div className="kpi-value">{conversaciones.filter(c => c.estado === 'resuelto').length}</div>
+              <div className="kpi-label">Resueltos</div>
+            </div>
+          </div>
+          <div className="kpi-card">
+            <div className="kpi-icon purple">⭐</div>
+            <div className="kpi-content">
+              <div className="kpi-value">4.7</div>
+              <div className="kpi-label">Satisfacción</div>
+            </div>
+          </div>
+        </div>
+      </div>
     );
-  });
+  }
 
   // ==========================================
-  // EXPORTAR CONVERSACIÓN
+  // CHAT VIEW
   // ==========================================
-  const exportConversation = () => {
-    if (!selectedChat) return;
-    
-    const exportData = {
-      cliente: selectedChat.cliente,
-      dni: selectedChat.dni,
-      email: selectedChat.email,
-      motivo: selectedChat.motivo,
-      estado: selectedChat.estado,
-      fecha: new Date().toLocaleString('es-AR'),
-      mensajes: selectedChat.mensajes.map(m => ({
-        tipo: m.tipo,
-        emisor: m.emisor || 'Sistema',
-        texto: m.texto,
-        hora: m.hora
-      }))
-    };
-    
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `chat-${selectedChat.cliente.replace(/\s/g, '-')}-${Date.now()}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    setShowExportModal(false);
-    showNotification('✅ Conversación exportada');
-  };
+  function ChatView() {
+    return (
+      <div className="chat-layout">
+        <div className="chat-queue">
+          <div className="queue-header">
+            <h2>Conversaciones</h2>
+            <span className="queue-count">{conversaciones.length}</span>
+          </div>
+          <div className="queue-list">
+            {conversaciones.map(chat => (
+              <div
+                key={chat.id}
+                className={`queue-item ${selectedChatId === chat.id ? 'active' : ''}`}
+                onClick={() => setSelectedChatId(chat.id)}
+              >
+                <div className={`queue-avatar ${chat.color}`}>{chat.avatar}</div>
+                <div className="queue-info">
+                  <div className="queue-name">{chat.cliente}</div>
+                  <div className="queue-message">{chat.ultimoMsg}</div>
+                </div>
+                <div className={`queue-status ${chat.estado}`}></div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="chat-main">
+          {selectedChat ? (
+            <>
+              <div className="chat-header">
+                <div className="chat-header-info">
+                  <div className={`chat-avatar ${selectedChat.color}`}>{selectedChat.avatar}</div>
+                  <div>
+                    <h3>{selectedChat.cliente}</h3>
+                    <p>{selectedChat.motivo}</p>
+                  </div>
+                </div>
+                <div className="chat-actions">
+                  <span className={`status-badge ${selectedChat.estado}`}>{selectedChat.estado}</span>
+                </div>
+              </div>
+              <div className="chat-messages">
+                {selectedChat.mensajes.map(msg => (
+                  <div key={msg.id} className={`message ${msg.tipo}`}>
+                    <div className="message-bubble">{msg.texto}</div>
+                    <div className="message-time">{msg.hora}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="chat-input">
+                <input
+                  type="text"
+                  placeholder="Escribe un mensaje..."
+                  value={messageInput}
+                  onChange={(e) => setMessageInput(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter' && messageInput.trim()) {
+                      const newMsg: Mensaje = {
+                        id: Date.now(),
+                        tipo: 'agente',
+                        emisor: 'Sofía Ríos',
+                        texto: messageInput,
+                        hora: new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }),
+                        leido: false
+                      };
+                      setConversaciones(prev => prev.map(c =>
+                        c.id === selectedChatId
+                          ? { ...c, mensajes: [...c.mensajes, newMsg], ultimoMsg: messageInput }
+                          : c
+                      ));
+                      setMessageInput('');
+                    }
+                  }}
+                />
+                <button onClick={() => {
+                  if (messageInput.trim()) {
+                    const newMsg: Mensaje = {
+                      id: Date.now(),
+                      tipo: 'agente',
+                      emisor: 'Sofía Ríos',
+                      texto: messageInput,
+                      hora: new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }),
+                      leido: false
+                    };
+                    setConversaciones(prev => prev.map(c =>
+                      c.id === selectedChatId
+                        ? { ...c, mensajes: [...c.mensajes, newMsg], ultimoMsg: messageInput }
+                        : c
+                    ));
+                    setMessageInput('');
+                  }
+                }}>
+                  ➤
+                </button>
+              </div>
+            </>
+          ) : (
+            <div className="chat-empty">
+              <p>Selecciona una conversación</p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   // ==========================================
-  // ACTUALIZAR ESTADÍSTICAS EN TIEMPO REAL
+  // CUSTOMERS VIEW
   // ==========================================
-  useEffect(() => {
-    const updateStats = () => {
-      const activeChats = conversaciones.filter(c => c.estado === 'activo').length;
-      const waitingChats = conversaciones.filter(c => c.estado === 'esperando').length;
-      const resolvedChats = conversaciones.filter(c => c.estado === 'resuelto').length;
-      
-      setStats({
-        totalChats: conversaciones.length,
-        activeChats,
-        waitingChats,
-        resolvedChats,
-        avgResponseTime: '1m 42s' // En producción se calcularía desde la BD
-      });
-    };
-    
-    updateStats();
-    const interval = setInterval(updateStats, 3000);
-    return () => clearInterval(interval);
-  }, [conversaciones]);
+  function CustomersView() {
+    return (
+      <div className="view-container">
+        <div className="view-header">
+          <h1>Clientes</h1>
+          <button className="btn-primary" onClick={() => showNotification('Función en desarrollo')}>+ Nuevo Cliente</button>
+        </div>
+        <div className="table-container">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>DNI</th>
+                <th>Email</th>
+                <th>Teléfono</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {clientes.map(cliente => (
+                <tr key={cliente.id}>
+                  <td>{cliente.nombre}</td>
+                  <td>{cliente.dni}</td>
+                  <td>{cliente.email}</td>
+                  <td>{cliente.telefono}</td>
+                  <td>
+                    <button className="btn-icon" onClick={() => showNotification('Editar cliente')}>✏️</button>
+                    <button className="btn-icon" onClick={() => showNotification('Eliminar cliente')}>🗑️</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  }
 
   // ==========================================
-  // INSERTAR RESPUESTA RÁPIDA
+  // ORDERS VIEW
   // ==========================================
-  const insertQR = (content: string) => {
-    setMessageInput(content);
-    setShowQR(false);
-  };
+  function OrdersView() {
+    return (
+      <div className="view-container">
+        <div className="view-header">
+          <h1>Pedidos</h1>
+          <button className="btn-primary" onClick={() => showNotification('Función en desarrollo')}>+ Nuevo Pedido</button>
+        </div>
+        <div className="table-container">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Número</th>
+                <th>Cliente</th>
+                <th>Producto</th>
+                <th>Monto</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {ordenes.map(orden => (
+                <tr key={orden.id}>
+                  <td>{orden.numero}</td>
+                  <td>{orden.clienteNombre}</td>
+                  <td>{orden.producto}</td>
+                  <td>${orden.monto.toLocaleString()}</td>
+                  <td><span className={`status-badge ${orden.estado}`}>{orden.estado}</span></td>
+                  <td>
+                    <button className="btn-icon" onClick={() => showNotification('Editar pedido')}>✏️</button>
+                    <button className="btn-icon" onClick={() => showNotification('Eliminar pedido')}>🗑️</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  }
 
   // ==========================================
-  // LIMPIAR TIMEOUT AL DESMONTAR
+  // USERS VIEW
   // ==========================================
-  useEffect(() => {
-    return () => {
-      if (autoReplyTimeoutRef.current) {
-        clearTimeout(autoReplyTimeoutRef.current);
-      }
-    };
-  }, []);
-
-  // Filtrar chats (combinando filtro de estado y búsqueda)
-  const filteredChats = filteredConversaciones.filter(c => {
-    if (chatFilter === 'todos') return true;
-    if (chatFilter === 'esperando') return c.estado === 'esperando';
-    if (chatFilter === 'activos') return c.estado === 'activo';
-    if (chatFilter === 'resueltos') return c.estado === 'resuelto';
-    return true;
-  });
-
-  const getEstadoBadge = (estado: string) => {
-    const map: Record<string, string> = { esperando: 'waiting', activo: 'active', resuelto: 'closed' };
-    return map[estado] || 'closed';
-  };
-
-  const getEstadoLabel = (estado: string) => {
-    const map: Record<string, string> = { esperando: 'Esperando', activo: 'En atención', resuelto: 'Resuelto' };
-    return map[estado] || estado;
-  };
+  function UsersView() {
+    return (
+      <div className="view-container">
+        <div className="view-header">
+          <h1>Usuarios</h1>
+          <button className="btn-primary" onClick={() => showNotification('Función en desarrollo')}>+ Nuevo Usuario</button>
+        </div>
+        <div className="table-container">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Email</th>
+                <th>Rol</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {usuarios.map(usuario => (
+                <tr key={usuario.id}>
+                  <td>{usuario.nombre}</td>
+                  <td>{usuario.email}</td>
+                  <td><span className="role-badge">{usuario.rol}</span></td>
+                  <td><span className={`status-badge ${usuario.estado}`}>{usuario.estado}</span></td>
+                  <td>
+                    <button className="btn-icon" onClick={() => showNotification('Editar usuario')}>✏️</button>
+                    <button className="btn-icon" onClick={() => showNotification('Eliminar usuario')}>🗑️</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  }
 
   // ==========================================
-  // RENDER
+  // OTHER VIEWS
+  // ==========================================
+  function EscalationsView() {
+    return (
+      <div className="view-container">
+        <div className="view-header">
+          <h1>Escalaciones</h1>
+        </div>
+        <div className="empty-state">
+          <p>📋 No hay escalaciones activas</p>
+        </div>
+      </div>
+    );
+  }
+
+  function KnowledgeView() {
+    return (
+      <div className="view-container">
+        <div className="view-header">
+          <h1>Base de Conocimiento</h1>
+        </div>
+        <div className="empty-state">
+          <p>📚 Base de conocimiento en desarrollo</p>
+        </div>
+      </div>
+    );
+  }
+
+  function QuickRepliesView() {
+    return (
+      <div className="view-container">
+        <div className="view-header">
+          <h1>Respuestas Rápidas</h1>
+        </div>
+        <div className="empty-state">
+          <p>⚡ Respuestas rápidas en desarrollo</p>
+        </div>
+      </div>
+    );
+  }
+
+  function MetricsView() {
+    return (
+      <div className="view-container">
+        <div className="view-header">
+          <h1>Métricas</h1>
+        </div>
+        <div className="kpi-grid">
+          <div className="kpi-card">
+            <div className="kpi-content">
+              <div className="kpi-value">78%</div>
+              <div className="kpi-label">FCR</div>
+            </div>
+          </div>
+          <div className="kpi-card">
+            <div className="kpi-content">
+              <div className="kpi-value">4.7</div>
+              <div className="kpi-label">CSAT</div>
+            </div>
+          </div>
+          <div className="kpi-card">
+            <div className="kpi-content">
+              <div className="kpi-value">1m 42s</div>
+              <div className="kpi-label">TMR</div>
+            </div>
+          </div>
+          <div className="kpi-card">
+            <div className="kpi-content">
+              <div className="kpi-value">8m 32s</div>
+              <div className="kpi-label">AHT</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  function QualityView() {
+    return (
+      <div className="view-container">
+        <div className="view-header">
+          <h1>Calidad</h1>
+        </div>
+        <div className="empty-state">
+          <p>✅ Evaluaciones de calidad en desarrollo</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ==========================================
+  // MAIN RENDER
   // ==========================================
   return (
-    <div className="app">
-      {/* Notification Toast */}
+    <div className={`app ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
       {notification && (
-        <div className="toast-notification">
+        <div className="notification">
           {notification}
         </div>
       )}
@@ -457,379 +550,76 @@ function App() {
         <div className="sidebar-header">
           <div className="sidebar-brand">
             <div className="brand-icon">N</div>
-            <div className="brand-text">
-              <h1>Nexo Web Chat</h1>
-              <p>Frávega · Atención Digital</p>
-            </div>
+            {!sidebarCollapsed && (
+              <div className="brand-text">
+                <h1>Nexo Web Chat</h1>
+                <p>Frávega</p>
+              </div>
+            )}
           </div>
+          <button className="sidebar-toggle" onClick={() => setSidebarCollapsed(!sidebarCollapsed)}>
+            {sidebarCollapsed ? '→' : '←'}
+          </button>
         </div>
-        <div className="sidebar-agent">
-          <div className="agent-avatar">SR<span className="status-dot online"></span></div>
-          <div className="agent-info">
-            <div className="name">Sofía Ríos</div>
-            <div className="role">Agente · En línea</div>
-          </div>
-        </div>
+
         <nav className="sidebar-nav">
-          <div className="nav-section">
-            <div className="nav-section-title">Principal</div>
-            <button className={`nav-item ${currentView === 'dashboard' ? 'active' : ''}`} onClick={() => setCurrentView('dashboard')}>
-              <span className="nav-icon">📊</span><span>Dashboard</span>
-            </button>
-            <button className={`nav-item ${currentView === 'chat' ? 'active' : ''}`} onClick={() => setCurrentView('chat')}>
-              <span className="nav-icon">💬</span><span>Bandeja de Chats</span>
-              {conversaciones.filter(c => c.unread).length > 0 && <span className="nav-badge">{conversaciones.filter(c => c.unread).length}</span>}
-            </button>
-          </div>
-          <div className="nav-section">
-            <div className="nav-section-title">Gestión</div>
-            <button className={`nav-item ${currentView === 'escalations' ? 'active' : ''}`} onClick={() => setCurrentView('escalations')}>
-              <span className="nav-icon">📋</span><span>Escalaciones</span>
-            </button>
-            <button className={`nav-item ${currentView === 'knowledge' ? 'active' : ''}`} onClick={() => setCurrentView('knowledge')}>
-              <span className="nav-icon">📚</span><span>Base de Conocimiento</span>
-            </button>
-            <button className={`nav-item ${currentView === 'quick-replies' ? 'active' : ''}`} onClick={() => setCurrentView('quick-replies')}>
-              <span className="nav-icon">⚡</span><span>Respuestas Rápidas</span>
-            </button>
-          </div>
-          <div className="nav-section">
-            <div className="nav-section-title">Análisis</div>
-            <button className={`nav-item ${currentView === 'metrics' ? 'active' : ''}`} onClick={() => setCurrentView('metrics')}>
-              <span className="nav-icon">📈</span><span>Métricas</span>
-            </button>
-            <button className={`nav-item ${currentView === 'quality' ? 'active' : ''}`} onClick={() => setCurrentView('quality')}>
-              <span className="nav-icon">✅</span><span>Calidad</span>
-            </button>
-          </div>
+          <button className={`nav-item ${currentView === 'dashboard' ? 'active' : ''}`} onClick={() => setCurrentView('dashboard')}>
+            <span className="nav-icon">📊</span>
+            {!sidebarCollapsed && <span>Dashboard</span>}
+          </button>
+          <button className={`nav-item ${currentView === 'chat' ? 'active' : ''}`} onClick={() => setCurrentView('chat')}>
+            <span className="nav-icon">💬</span>
+            {!sidebarCollapsed && <span>Chats</span>}
+            {conversaciones.filter(c => c.unread).length > 0 && !sidebarCollapsed && (
+              <span className="nav-badge">{conversaciones.filter(c => c.unread).length}</span>
+            )}
+          </button>
+          <button className={`nav-item ${currentView === 'customers' ? 'active' : ''}`} onClick={() => setCurrentView('customers')}>
+            <span className="nav-icon">👥</span>
+            {!sidebarCollapsed && <span>Clientes</span>}
+          </button>
+          <button className={`nav-item ${currentView === 'orders' ? 'active' : ''}`} onClick={() => setCurrentView('orders')}>
+            <span className="nav-icon">📦</span>
+            {!sidebarCollapsed && <span>Pedidos</span>}
+          </button>
+          <button className={`nav-item ${currentView === 'users' ? 'active' : ''}`} onClick={() => setCurrentView('users')}>
+            <span className="nav-icon">👤</span>
+            {!sidebarCollapsed && <span>Usuarios</span>}
+          </button>
+          <button className={`nav-item ${currentView === 'escalations' ? 'active' : ''}`} onClick={() => setCurrentView('escalations')}>
+            <span className="nav-icon">📋</span>
+            {!sidebarCollapsed && <span>Escalaciones</span>}
+          </button>
+          <button className={`nav-item ${currentView === 'knowledge' ? 'active' : ''}`} onClick={() => setCurrentView('knowledge')}>
+            <span className="nav-icon">📚</span>
+            {!sidebarCollapsed && <span>Conocimiento</span>}
+          </button>
+          <button className={`nav-item ${currentView === 'quick-replies' ? 'active' : ''}`} onClick={() => setCurrentView('quick-replies')}>
+            <span className="nav-icon">⚡</span>
+            {!sidebarCollapsed && <span>Rápidas</span>}
+          </button>
+          <button className={`nav-item ${currentView === 'metrics' ? 'active' : ''}`} onClick={() => setCurrentView('metrics')}>
+            <span className="nav-icon">📈</span>
+            {!sidebarCollapsed && <span>Métricas</span>}
+          </button>
+          <button className={`nav-item ${currentView === 'quality' ? 'active' : ''}`} onClick={() => setCurrentView('quality')}>
+            <span className="nav-icon">✅</span>
+            {!sidebarCollapsed && <span>Calidad</span>}
+          </button>
         </nav>
+
         <div className="sidebar-footer">
-          <div className="stat">💬 Chats activos: {conversaciones.filter(c => c.estado === 'activo').length}</div>
-          <div className="stat">⏳ En espera: {conversaciones.filter(c => c.estado === 'esperando').length}</div>
+          <button className="theme-toggle" onClick={toggleTheme}>
+            {theme === 'light' ? '🌙' : '☀️'}
+            {!sidebarCollapsed && <span>{theme === 'light' ? 'Oscuro' : 'Claro'}</span>}
+          </button>
         </div>
       </aside>
 
       {/* Main Content */}
-      <main className="main">
-        <div className="topbar">
-          <div className="topbar-left">
-            <div className="topbar-title">Bandeja de Chats</div>
-            <div className="topbar-breadcrumb">Atención Digital / <span>Conversaciones</span></div>
-          </div>
-          <div className="topbar-right">
-            <div className="stats-bar">
-              <div className="stat-item">
-                <span className="stat-label">Activos:</span>
-                <span className="stat-value active">{stats.activeChats}</span>
-              </div>
-              <div className="stat-item">
-                <span className="stat-label">Espera:</span>
-                <span className="stat-value waiting">{stats.waitingChats}</span>
-              </div>
-              <div className="stat-item">
-                <span className="stat-label">Resueltos:</span>
-                <span className="stat-value resolved">{stats.resolvedChats}</span>
-              </div>
-            </div>
-            <button 
-              className="topbar-btn" 
-              onClick={() => setShowSearch(!showSearch)}
-              title="Buscar"
-            >
-              🔍
-            </button>
-            <button 
-              className="topbar-btn" 
-              onClick={toggleTheme}
-              title="Cambiar tema"
-            >
-              {theme === 'light' ? '🌙' : '☀️'}
-            </button>
-            <div className="live-indicator">
-              <span className="live-dot"></span>
-              <span>En vivo</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Barra de búsqueda global */}
-        {showSearch && (
-          <div className="search-bar">
-            <input
-              type="text"
-              placeholder="Buscar por cliente, DNI, motivo o mensaje..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              autoFocus
-            />
-            <button onClick={() => { setSearchQuery(''); setShowSearch(false); }}>
-              ✕
-            </button>
-          </div>
-        )}
-
-        {/* Chat Layout */}
-        <div className="chat-view">
-          {/* Panel 1: Queue */}
-          <div className="panel-queue">
-            <div className="panel-queue-header">
-              <h2>Conversaciones</h2>
-              <p>{conversaciones.length} en total</p>
-            </div>
-            <div className="queue-filters">
-              {['todos', 'esperando', 'activos', 'resueltos'].map(f => (
-                <button key={f} className={`queue-filter ${chatFilter === f ? 'active' : ''}`} onClick={() => setChatFilter(f)}>
-                  {f === 'todos' ? 'Todos' : f === 'esperando' ? 'Esperando' : f === 'activos' ? 'Activos' : 'Resueltos'}
-                </button>
-              ))}
-            </div>
-            <div className="queue-list">
-              {filteredChats.length === 0 ? (
-                <div className="empty-queue">
-                  <p>🎉 No hay conversaciones</p>
-                </div>
-              ) : (
-                filteredChats.map(chat => (
-                  <div key={chat.id} className={`queue-item-wrapper ${selectedChatId === chat.id ? 'active' : ''}`}>
-                    <button className={`queue-item ${chat.unread ? 'unread' : ''}`} onClick={() => { setSelectedChatId(chat.id); if (chat.unread) { setConversaciones(prev => prev.map(c => c.id === chat.id ? { ...c, unread: false } : c)); } }}>
-                      <div className={`queue-avatar ${chat.color}`}>{chat.avatar}</div>
-                      <div className="queue-info">
-                        <div className="queue-info-top">
-                          <span className="queue-name">{chat.cliente}</span>
-                          <span className="queue-time">{chat.mensajes[0]?.hora}</span>
-                        </div>
-                        <div className="queue-message">{chat.ultimoMsg}</div>
-                        <div className="queue-meta">
-                          <span className={`status-badge ${getEstadoBadge(chat.estado)}`}>{getEstadoLabel(chat.estado)}</span>
-                          {chat.estado === 'esperando' && <span className="wait-timer"><span className="dot"></span>{chat.tiempo}</span>}
-                        </div>
-                      </div>
-                    </button>
-                    <button className="queue-delete-btn" onClick={(e) => { e.stopPropagation(); setShowDeleteConfirm(chat.id); }} title="Eliminar chat">
-                      🗑️
-                    </button>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-
-          {/* Panel 2: Chat Room */}
-          {selectedChat ? (
-            <div className="panel-chat">
-              <div className="chat-header">
-                <div className="chat-header-left">
-                  <div className={`queue-avatar ${selectedChat.color}`}>{selectedChat.avatar}</div>
-                  <div className="chat-header-info">
-                    <h3>{selectedChat.cliente}</h3>
-                    <p>{selectedChat.motivo} · DNI: {selectedChat.dni}</p>
-                  </div>
-                </div>
-                <div className="chat-header-actions">
-                  <span className={`status-badge ${getEstadoBadge(selectedChat.estado)}`}>{getEstadoLabel(selectedChat.estado)}</span>
-                  {selectedChat.estado === 'esperando' && (
-                    <button className="chat-action-btn primary" onClick={() => takeChat(selectedChat.id)}>✋ Tomar</button>
-                  )}
-                  {selectedChat.estado === 'activo' && (
-                    <button className="chat-action-btn success" onClick={resolveChat}>✓ Resolver</button>
-                  )}
-                  <button 
-                    className="chat-action-btn" 
-                    onClick={() => setShowExportModal(true)} 
-                    title="Exportar conversación"
-                  >
-                    📥 Exportar
-                  </button>
-                  <button className="chat-action-btn danger" onClick={() => setShowDeleteConfirm(selectedChat.id)} title="Eliminar chat">🗑️</button>
-                </div>
-              </div>
-
-              <div className="chat-messages">
-                {selectedChat.mensajes.map(msg => (
-                  <div key={msg.id} className={`msg ${msg.tipo === 'agente' ? 'sent' : msg.tipo === 'sistema' ? 'system' : 'received'} ${msg.tipo === 'bot' ? 'bot' : ''}`}>
-                    {msg.tipo !== 'sistema' && (
-                      <div className="msg-header">
-                        <span className="msg-sender">{msg.emisor}</span>
-                        <span className="msg-time">{msg.hora}</span>
-                        {msg.tipo === 'agente' && (
-                          <span className="msg-status">{msg.leido ? '✓✓' : '✓'}</span>
-                        )}
-                      </div>
-                    )}
-                    <div className="msg-bubble">{msg.texto}</div>
-                  </div>
-                ))}
-                {/* Typing indicator */}
-                {selectedChat.clienteEscribiendo && (
-                  <div className="msg received">
-                    <div className="msg-header">
-                      <span className="msg-sender">{selectedChat.cliente}</span>
-                      <span className="msg-time" style={{ fontStyle: 'italic' }}>escribiendo...</span>
-                    </div>
-                    <div className="typing-indicator">
-                      <div className="typing-dot"></div>
-                      <div className="typing-dot"></div>
-                      <div className="typing-dot"></div>
-                    </div>
-                  </div>
-                )}
-                <div ref={messagesEndRef}></div>
-              </div>
-
-              <div className="chat-input-area">
-                <div className="chat-toolbar">
-                  <button className={`toolbar-btn ${showQR ? 'active' : ''}`} onClick={() => setShowQR(!showQR)}>⚡ Respuestas rápidas</button>
-                  <button className="toolbar-btn" disabled>📎 Adjuntar</button>
-                  {selectedChat.estado === 'resuelto' && (
-                    <span className="chat-closed-notice">💬 Chat resuelto - No se pueden enviar mensajes</span>
-                  )}
-                </div>
-                {showQR && (
-                  <div className="quick-replies-panel">
-                    {respuestasRapidas.map(qr => (
-                      <div key={qr.id} className="qr-item" onClick={() => insertQR(qr.contenido)}>
-                        <div className="qr-item-header">
-                          <span className="qr-shortcut">{qr.atajo}</span>
-                          <span className="qr-title">{qr.titulo}</span>
-                        </div>
-                        <div className="qr-preview">{qr.contenido}</div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                <div className="chat-input-row">
-                  <textarea 
-                    className="chat-textarea" 
-                    placeholder={selectedChat.estado === 'resuelto' ? 'Chat resuelto' : 'Escribí tu respuesta...'} 
-                    value={messageInput} 
-                    onChange={e => setMessageInput(e.target.value)} 
-                    onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (selectedChat.estado !== 'resuelto') sendMessage(); } }}
-                    disabled={selectedChat.estado === 'resuelto'}
-                    rows={1}
-                  ></textarea>
-                  <button className="send-btn" onClick={sendMessage} disabled={!messageInput.trim() || selectedChat.estado === 'resuelto'}>➤</button>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="panel-chat empty-chat">
-              <div className="empty-state">
-                <p>💬 Seleccioná un chat para comenzar</p>
-              </div>
-            </div>
-          )}
-
-          {/* Panel 3: Context */}
-          {selectedChat && (
-            <div className="panel-context">
-              <div className="context-section">
-                <div className="context-section-title">Perfil del Cliente</div>
-                <div className="context-profile">
-                  <div className={`queue-avatar ${selectedChat.color}`}>{selectedChat.avatar}</div>
-                  <div className="context-profile-info">
-                    <h4>{selectedChat.cliente}</h4>
-                    <p>Cliente desde {selectedChat.clienteDesde}</p>
-                  </div>
-                </div>
-                <div className="context-details">
-                  <div className="context-detail"><i>✉️</i><span>{selectedChat.email}</span></div>
-                  <div className="context-detail"><i>📱</i><span>{selectedChat.tel}</span></div>
-                  <div className="context-detail"><i>🪪</i><span>DNI: {selectedChat.dni}</span></div>
-                </div>
-              </div>
-              <div className="context-section">
-                <div className="context-stats">
-                  <div className="context-stat blue"><div className="value">{selectedChat.pedidos}</div><div className="label">Pedidos</div></div>
-                  <div className="context-stat orange"><div className="value">{selectedChat.casos}</div><div className="label">Casos</div></div>
-                </div>
-              </div>
-              {selectedChat.pedido && (
-                <div className="context-section">
-                  <div className="context-section-title">Pedido en Consulta</div>
-                  <div className="order-card">
-                    <div className="order-card-top">
-                      <span className="order-number">{selectedChat.pedido.num}</span>
-                      <span className={`order-status ${selectedChat.pedido.estado}`}>{selectedChat.pedido.estadoLabel}</span>
-                    </div>
-                    <div className="order-product">{selectedChat.pedido.producto}</div>
-                    <div className="order-details">
-                      <div className="order-row"><span className="label">Monto:</span><span className="value">${selectedChat.pedido.monto.toLocaleString('es-AR')}</span></div>
-                      <div className="order-row"><span className="label">Entrega:</span><span className="value">{selectedChat.pedido.entrega}</span></div>
-                    </div>
-                    <div className="progress-tracker">
-                      <div className="progress-labels"><span>Preparando</span><span>En camino</span><span>Entregado</span></div>
-                      <div className="progress-bar"><div className={`progress-fill ${selectedChat.pedido.estado}`}></div></div>
-                    </div>
-                  </div>
-                </div>
-              )}
-              <div className="context-section">
-                <div className="context-section-title">Información del Sistema</div>
-                <div className="system-info">
-                  <div className="info-row">
-                    <span className="info-label">Estado:</span>
-                    <span className={`status-badge ${getEstadoBadge(selectedChat.estado)}`}>{getEstadoLabel(selectedChat.estado)}</span>
-                  </div>
-                  <div className="info-row">
-                    <span className="info-label">Mensajes:</span>
-                    <span>{selectedChat.mensajes.length}</span>
-                  </div>
-                  <div className="info-row">
-                    <span className="info-label">Inicio:</span>
-                    <span>{selectedChat.mensajes[0]?.hora}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
+      <main className="main-content">
+        {renderView()}
       </main>
-
-      {/* Delete Confirmation Modal */}
-      {showDeleteConfirm !== null && (
-        <div className="modal-overlay" onClick={() => setShowDeleteConfirm(null)}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>🗑️ Eliminar conversación</h3>
-              <button className="modal-close" onClick={() => setShowDeleteConfirm(null)}>✕</button>
-            </div>
-            <div className="modal-body">
-              <p>¿Estás seguro de que deseas eliminar esta conversación?</p>
-              <p className="text-muted">Esta acción eliminará todos los mensajes y no se puede deshacer.</p>
-            </div>
-            <div className="modal-footer">
-              <button className="btn btn-secondary" onClick={() => setShowDeleteConfirm(null)}>Cancelar</button>
-              <button className="btn btn-danger" onClick={() => deleteChat(showDeleteConfirm)}>Eliminar</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Export Modal */}
-      {showExportModal && selectedChat && (
-        <div className="modal-overlay" onClick={() => setShowExportModal(false)}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>📥 Exportar conversación</h3>
-              <button className="modal-close" onClick={() => setShowExportModal(false)}>✕</button>
-            </div>
-            <div className="modal-body">
-              <p>Se exportará la conversación completa en formato JSON.</p>
-              <div className="export-preview">
-                <p><strong>Cliente:</strong> {selectedChat.cliente}</p>
-                <p><strong>DNI:</strong> {selectedChat.dni}</p>
-                <p><strong>Motivo:</strong> {selectedChat.motivo}</p>
-                <p><strong>Mensajes:</strong> {selectedChat.mensajes.length}</p>
-                <p><strong>Estado:</strong> {getEstadoLabel(selectedChat.estado)}</p>
-              </div>
-            </div>
-            <div className="modal-footer">
-              <button className="btn btn-secondary" onClick={() => setShowExportModal(false)}>Cancelar</button>
-              <button className="btn btn-primary" onClick={exportConversation}>Exportar</button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
