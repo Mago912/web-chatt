@@ -1689,6 +1689,7 @@ p {
 
 [data-theme="dark"] .escalation-card {
   background: #1a1a1a;
+  border: 1px solid #333333;
 }
 
 [data-theme="dark"] .escalation-card h3 {
@@ -1702,6 +1703,38 @@ p {
 [data-theme="dark"] .escalation-desc {
   background: #2a2a2a;
   color: #e5e5e5;
+  border: 1px solid #333333;
+}
+
+[data-theme="dark"] .escalation-header {
+  color: #ffffff;
+}
+
+[data-theme="dark"] .escalation-date {
+  color: #b3b3b3;
+}
+
+[data-theme="dark"] .escalation-footer {
+  color: #e5e5e5;
+}
+
+[data-theme="dark"] .priority-badge {
+  opacity: 0.95;
+}
+
+[data-theme="dark"] .priority-badge.alta {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+
+[data-theme="dark"] .priority-badge.media {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+}
+
+[data-theme="dark"] .priority-badge.baja {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
 }
 
 [data-theme="dark"] .quick-reply-card {
@@ -1850,12 +1883,604 @@ p {
 }
 
 [data-theme="dark"] .status-badge {
-  opacity: 0.9;
+  opacity: 0.95;
+  font-weight: 600;
+}
+
+[data-theme="dark"] .status-badge.activo,
+[data-theme="dark"] .status-badge.available,
+[data-theme="dark"] .status-badge.shipping,
+[data-theme="dark"] .status-badge.delivered {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+}
+
+[data-theme="dark"] .status-badge.esperando,
+[data-theme="dark"] .status-badge.preparing {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+}
+
+[data-theme="dark"] .status-badge.resuelto {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+}
+
+[data-theme="dark"] .status-badge.delayed {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+
+[data-theme="dark"] .status-badge.busy {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+}
+
+[data-theme="dark"] .status-badge.break {
+  background: rgba(139, 92, 246, 0.2);
+  color: #a78bfa;
+}
+
+[data-theme="dark"] .status-badge.offline {
+  background: rgba(156, 163, 175, 0.2);
+  color: #d1d5db;
 }
 
 [data-theme="dark"] .role-badge {
   background: rgba(139, 92, 246, 0.2);
   color: #a78bfa;
+  font-weight: 600;
+}
+
+/* Mejorar contraste de elementos interactivos */
+[data-theme="dark"] .queue-item {
+  border-bottom: 1px solid #333333;
+}
+
+[data-theme="dark"] .queue-item:hover {
+  background: #2a2a2a;
+}
+
+[data-theme="dark"] .queue-item.active {
+  background: #2a2a2a;
+  border-left: 3px solid #3b82f6;
+}
+
+[data-theme="dark"] .btn-icon {
+  color: #e5e5e5;
+}
+
+[data-theme="dark"] .btn-icon:hover {
+  background: #333333;
+}
+
+[data-theme="dark"] .btn-primary {
+  background: #3b82f6;
+  color: #ffffff;
+}
+
+[data-theme="dark"] .btn-primary:hover {
+  background: #2563eb;
+}
+
+[data-theme="dark"] .btn-success {
+  background: #10b981;
+  color: #ffffff;
+}
+
+[data-theme="dark"] .btn-success:hover {
+  background: #059669;
+}
+
+[data-theme="dark"] .btn-danger {
+  background: #ef4444;
+  color: #ffffff;
+}
+
+[data-theme="dark"] .btn-danger:hover {
+  background: #dc2626;
+}
+
+[data-theme="dark"] .btn-secondary {
+  background: #2a2a2a;
+  color: #ffffff;
+  border: 1px solid #333333;
+}
+
+[data-theme="dark"] .btn-secondary:hover {
+  background: #333333;
+}
+
+/* Mejorar contraste de avatares */
+[data-theme="dark"] .queue-avatar {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+[data-theme="dark"] .chat-avatar {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+[data-theme="dark"] .agent-avatar {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+/* Mejorar contraste de notificaciones */
+[data-theme="dark"] .notification {
+  background: #10b981;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+/* Mejorar contraste de badges de navegación */
+[data-theme="dark"] .nav-badge {
+  background: #ef4444;
+  color: #ffffff;
+}
+
+/* Mejorar contraste de inputs */
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder {
+  color: #999999;
+}
+
+/* Mejorar contraste de enlaces */
+[data-theme="dark"] a {
+  color: #60a5fa;
+}
+
+[data-theme="dark"] a:hover {
+  color: #3b82f6;
+}
+
+/* Mejorar contraste de scrollbars */
+[data-theme="dark"] ::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: #4a4a4a;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: #5a5a5a;
+}
+
+/* ============================================
+   ACCESIBILIDAD - FOCUS STATES
+   ============================================ */
+
+/* Focus visible para accesibilidad de teclado */
+*:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+[data-theme="dark"] *:focus-visible {
+  outline: 2px solid #60a5fa;
+  outline-offset: 2px;
+}
+
+/* Mejorar contraste de botones en focus */
+button:focus-visible,
+.btn-primary:focus-visible,
+.btn-success:focus-visible,
+.btn-danger:focus-visible,
+.btn-secondary:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* Mejorar contraste de inputs en focus */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+[data-theme="dark"] input:focus-visible,
+[data-theme="dark"] textarea:focus-visible,
+[data-theme="dark"] select:focus-visible {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.3);
+}
+
+/* ============================================
+   ACCESIBILIDAD - MEJORAS GENERALES
+   ============================================ */
+
+/* Asegurar que todos los textos tengan suficiente contraste */
+[data-theme="dark"] .text-secondary {
+  color: #e5e5e5;
+}
+
+[data-theme="dark"] .text-tertiary {
+  color: #b3b3b3;
+}
+
+/* Mejorar contraste de tablas en modo oscuro */
+[data-theme="dark"] .data-table thead {
+  background: #2a2a2a;
+}
+
+[data-theme="dark"] .data-table th {
+  color: #ffffff;
+  border-bottom: 2px solid #333333;
+}
+
+[data-theme="dark"] .data-table td {
+  color: #ffffff;
+  border-top: 1px solid #333333;
+}
+
+[data-theme="dark"] .data-table tbody tr:hover {
+  background: #2a2a2a;
+}
+
+/* Mejorar contraste de cards en modo oscuro */
+[data-theme="dark"] .card {
+  background: #1a1a1a;
+  border: 1px solid #333333;
+}
+
+[data-theme="dark"] .kpi-card {
+  background: #1a1a1a;
+  border: 1px solid #333333;
+}
+
+/* Mejorar contraste de headers de cards */
+[data-theme="dark"] .card-header {
+  border-bottom: 1px solid #333333;
+}
+
+/* Mejorar contraste de quick-replies-panel */
+[data-theme="dark"] .quick-replies-panel {
+  background: #1a1a1a;
+  border: 1px solid #333333;
+}
+
+[data-theme="dark"] .quick-reply-item {
+  border-bottom: 1px solid #333333;
+}
+
+[data-theme="dark"] .quick-reply-item:hover {
+  background: #2a2a2a;
+}
+
+/* Mejorar contraste de toolbar buttons */
+[data-theme="dark"] .toolbar-btn {
+  background: #2a2a2a;
+  color: #ffffff;
+  border: 1px solid #333333;
+}
+
+[data-theme="dark"] .toolbar-btn:hover {
+  background: #333333;
+}
+
+[data-theme="dark"] .toolbar-btn.active {
+  background: #3b82f6;
+  color: #ffffff;
+  border-color: #3b82f6;
+}
+
+/* Mejorar contraste de chat input */
+[data-theme="dark"] .chat-input input {
+  background: #2a2a2a;
+  color: #ffffff;
+  border: 1px solid #333333;
+}
+
+[data-theme="dark"] .chat-input input:focus {
+  border-color: #3b82f6;
+}
+
+[data-theme="dark"] .chat-input button {
+  background: #3b82f6;
+  color: #ffffff;
+}
+
+[data-theme="dark"] .chat-input button:hover {
+  background: #2563eb;
+}
+
+/* Mejorar contraste de queue elements */
+[data-theme="dark"] .queue-header {
+  border-bottom: 1px solid #333333;
+}
+
+[data-theme="dark"] .queue-header h2 {
+  color: #ffffff;
+}
+
+[data-theme="dark"] .queue-count {
+  background: #3b82f6;
+  color: #ffffff;
+}
+
+/* Mejorar contraste de sidebar */
+[data-theme="dark"] .sidebar {
+  background: #1a1a1a;
+  border-right: 1px solid #333333;
+}
+
+[data-theme="dark"] .sidebar-header {
+  border-bottom: 1px solid #333333;
+}
+
+[data-theme="dark"] .sidebar-footer {
+  border-top: 1px solid #333333;
+}
+
+[data-theme="dark"] .brand-text h1 {
+  color: #ffffff;
+}
+
+[data-theme="dark"] .brand-text p {
+  color: #b3b3b3;
+}
+
+/* Mejorar contraste de theme toggle */
+[data-theme="dark"] .theme-toggle {
+  background: #2a2a2a;
+  color: #ffffff;
+  border: 1px solid #333333;
+}
+
+[data-theme="dark"] .theme-toggle:hover {
+  background: #333333;
+}
+
+/* Mejorar contraste de sidebar toggle */
+[data-theme="dark"] .sidebar-toggle {
+  background: #2a2a2a;
+  color: #ffffff;
+  border: 1px solid #333333;
+}
+
+[data-theme="dark"] .sidebar-toggle:hover {
+  background: #333333;
+}
+
+/* Mejorar contraste de modal overlay */
+[data-theme="dark"] .modal-overlay {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+/* Mejorar contraste de escalations list */
+[data-theme="dark"] .escalations-list {
+  color: #ffffff;
+}
+
+/* Mejorar contraste de knowledge base */
+[data-theme="dark"] .kb-list {
+  color: #ffffff;
+}
+
+/* Mejorar contraste de quick replies grid */
+[data-theme="dark"] .quick-replies-grid {
+  color: #ffffff;
+}
+
+/* Mejorar contraste de metric progress */
+[data-theme="dark"] .metric-progress-bar {
+  background: #2a2a2a;
+}
+
+/* Mejorar contraste de chart */
+[data-theme="dark"] .chart-bar {
+  background: linear-gradient(180deg, #3b82f6, #2563eb);
+}
+
+/* Mejorar contraste de agent list */
+[data-theme="dark"] .agent-list {
+  color: #ffffff;
+}
+
+[data-theme="dark"] .agent-item:hover {
+  background: #2a2a2a;
+}
+
+/* Mejorar contraste de mensajes del chat */
+[data-theme="dark"] .message.cliente .message-bubble {
+  background: #2a2a2a;
+  color: #ffffff;
+  border: 1px solid #333333;
+}
+
+[data-theme="dark"] .message.agente .message-bubble {
+  background: #3b82f6;
+  color: #ffffff;
+}
+
+[data-theme="dark"] .message.sistema .message-bubble {
+  background: #2a2a2a;
+  color: #b3b3b3;
+  border: 1px solid #333333;
+}
+
+[data-theme="dark"] .message.bot .message-bubble {
+  background: rgba(139, 92, 246, 0.2);
+  color: #ffffff;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+/* Mejorar contraste de chat main */
+[data-theme="dark"] .chat-main {
+  background: #1a1a1a;
+}
+
+[data-theme="dark"] .chat-header {
+  background: #1a1a1a;
+  border-bottom: 1px solid #333333;
+}
+
+[data-theme="dark"] .chat-input-area {
+  background: #1a1a1a;
+  border-top: 1px solid #333333;
+}
+
+[data-theme="dark"] .chat-messages {
+  background: #0f0f0f;
+}
+
+/* Mejorar contraste de chat queue */
+[data-theme="dark"] .chat-queue {
+  background: #1a1a1a;
+  border-right: 1px solid #333333;
+}
+
+/* Mejorar contraste de queue status indicators */
+[data-theme="dark"] .queue-status.activo {
+  background: #10b981;
+}
+
+[data-theme="dark"] .queue-status.esperando {
+  background: #f59e0b;
+}
+
+[data-theme="dark"] .queue-status.resuelto {
+  background: #3b82f6;
+}
+
+/* Mejorar contraste de queue buttons */
+[data-theme="dark"] .queue-take-btn {
+  background: #2a2a2a;
+  color: #ffffff;
+}
+
+[data-theme="dark"] .queue-take-btn:hover {
+  background: #3b82f6;
+  color: #ffffff;
+}
+
+[data-theme="dark"] .queue-delete-btn {
+  background: #2a2a2a;
+  color: #ffffff;
+}
+
+[data-theme="dark"] .queue-delete-btn:hover {
+  background: #ef4444;
+  color: #ffffff;
+}
+
+/* Mejorar contraste de chat empty state */
+[data-theme="dark"] .chat-empty {
+  color: #b3b3b3;
+}
+
+/* Mejorar contraste de empty state */
+[data-theme="dark"] .empty-state {
+  color: #b3b3b3;
+}
+
+/* Mejorar contraste de empty queue */
+[data-theme="dark"] .empty-queue {
+  color: #b3b3b3;
+}
+
+/* Mejorar contraste de view container */
+[data-theme="dark"] .view-container {
+  background: #0f0f0f;
+}
+
+/* Mejorar contraste de main content */
+[data-theme="dark"] .main-content {
+  background: #0f0f0f;
+}
+
+/* Mejorar contraste de body en modo oscuro */
+[data-theme="dark"] body {
+  background: #0f0f0f;
+  color: #ffffff;
+}
+
+/* ============================================
+   ACCESIBILIDAD - REDUCED MOTION
+   ============================================ */
+
+/* Respetar preferencias de movimiento reducido */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ============================================
+   ACCESIBILIDAD - HIGH CONTRAST
+   ============================================ */
+
+/* Soporte para modo de alto contraste del sistema */
+@media (prefers-contrast: high) {
+  :root {
+    --text-primary: #000000;
+    --text-secondary: #333333;
+    --border-color: #000000;
+  }
+
+  [data-theme="dark"] {
+    --text-primary: #ffffff;
+    --text-secondary: #e5e5e5;
+    --border-color: #ffffff;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    border-width: 2px;
+  }
+}
+
+/* ============================================
+   UTILIDADES DE ACCESIBILIDAD
+   ============================================ */
+
+/* Clase para ocultar visualmente pero mantener accesible para screen readers */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Clase para skip links (accesibilidad de teclado) */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: var(--primary-color);
+  color: white;
+  padding: 8px;
+  text-decoration: none;
+  z-index: 100;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* Mejorar contraste de selection */
+::selection {
+  background: var(--primary-color);
+  color: white;
+}
+
+[data-theme="dark"] ::selection {
+  background: #3b82f6;
+  color: #ffffff;
 }
 
 [data-theme="dark"] .priority-badge.alta {
