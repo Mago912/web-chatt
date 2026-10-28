@@ -229,9 +229,109 @@ const usuariosIniciales: Usuario[] = [
 ];
 
 // ==========================================
+// USUARIOS DE PRUEBA PARA LOGIN
+// ==========================================
+const usuariosPrueba = [
+  { dni: '12345678', password: 'admin123', codigo: '1234', nombre: 'Admin Sistema', rol: 'admin' },
+  { dni: '23456789', password: 'super123', codigo: '2345', nombre: 'Nicolás Romero', rol: 'supervisor' },
+  { dni: '34567890', password: 'agent123', codigo: '3456', nombre: 'Sofía Ríos', rol: 'agente' },
+];
+
+// ==========================================
+// LOGIN SCREEN COMPONENT
+// ==========================================
+function LoginScreen({ onLogin, error }: { onLogin: (dni: string, password: string, codigo: string) => void; error: string }) {
+  const [dni, setDni] = useState('');
+  const [password, setPassword] = useState('');
+  const [codigo, setCodigo] = useState('');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onLogin(dni, password, codigo);
+  };
+
+  return (
+    <div className="login-container">
+      <div className="login-card">
+        <div className="login-header">
+          <div className="login-logo">N</div>
+          <h1>Nexo Web Chat</h1>
+          <p>Sistema de Atención al Cliente</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="login-form">
+          <div className="login-field">
+            <label htmlFor="dni">DNI</label>
+            <input
+              id="dni"
+              type="text"
+              placeholder="Ej: 12345678"
+              value={dni}
+              onChange={(e) => setDni(e.target.value)}
+              required
+              autoComplete="username"
+            />
+          </div>
+
+          <div className="login-field">
+            <label htmlFor="password">Contraseña</label>
+            <input
+              id="password"
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              autoComplete="current-password"
+            />
+          </div>
+
+          <div className="login-field">
+            <label htmlFor="codigo">Código de Seguridad</label>
+            <input
+              id="codigo"
+              type="text"
+              placeholder="Ej: 1234"
+              value={codigo}
+              onChange={(e) => setCodigo(e.target.value)}
+              required
+              maxLength={4}
+            />
+          </div>
+
+          {error && <div className="login-error">{error}</div>}
+
+          <button type="submit" className="login-button">
+            Iniciar Sesión
+          </button>
+        </form>
+
+        <div className="login-footer">
+          <p className="login-hint">💡 Usuarios de prueba:</p>
+          <div className="login-credentials">
+            <div className="credential-item">
+              <strong>Admin:</strong> 12345678 / admin123 / 1234
+            </div>
+            <div className="credential-item">
+              <strong>Supervisor:</strong> 23456789 / super123 / 2345
+            </div>
+            <div className="credential-item">
+              <strong>Agente:</strong> 34567890 / agent123 / 3456
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ==========================================
 // APP COMPONENT
 // ==========================================
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [loginError, setLoginError] = useState('');
   const [currentView, setCurrentView] = useState<View>('chat');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [conversaciones, setConversaciones] = useState<Conversacion[]>(conversacionesIniciales);
@@ -263,6 +363,35 @@ function App() {
     document.documentElement.setAttribute('data-theme', newTheme);
     showNotification(`🎨 Tema ${newTheme === 'dark' ? 'oscuro' : 'claro'} activado`);
   };
+
+  // ==========================================
+  // LOGIN HANDLER
+  // ==========================================
+  const handleLogin = (dni: string, password: string, codigo: string) => {
+    const user = usuariosPrueba.find(
+      u => u.dni === dni && u.password === password && u.codigo === codigo
+    );
+
+    if (user) {
+      setIsAuthenticated(true);
+      setCurrentUser(user);
+      setLoginError('');
+      showNotification(`✅ Bienvenido, ${user.nombre}`);
+    } else {
+      setLoginError('DNI, contraseña o código de seguridad incorrectos');
+    }
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setCurrentUser(null);
+    showNotification('👋 Sesión cerrada');
+  };
+
+  // Si no está autenticado, mostrar pantalla de login
+  if (!isAuthenticated) {
+    return <LoginScreen onLogin={handleLogin} error={loginError} />;
+  }
 
   // ==========================================
   // CRUD HANDLERS
@@ -1031,10 +1160,25 @@ function App() {
         </nav>
 
         <div className="sidebar-footer">
-          <button className="theme-toggle" onClick={toggleTheme}>
-            {theme === 'light' ? '🌙' : '☀️'}
-            {!sidebarCollapsed && <span>{theme === 'light' ? 'Oscuro' : 'Claro'}</span>}
-          </button>
+          {currentUser && !sidebarCollapsed && (
+            <div className="user-info">
+              <div className="user-avatar">{currentUser.nombre.split(' ').map((n: string) => n[0]).join('').substring(0, 2)}</div>
+              <div className="user-details">
+                <div className="user-name">{currentUser.nombre}</div>
+                <div className="user-role">{currentUser.rol}</div>
+              </div>
+            </div>
+          )}
+          <div className="sidebar-actions">
+            <button className="theme-toggle" onClick={toggleTheme}>
+              {theme === 'light' ? '🌙' : '☀️'}
+              {!sidebarCollapsed && <span>{theme === 'light' ? 'Oscuro' : 'Claro'}</span>}
+            </button>
+            <button className="logout-button" onClick={handleLogout} title="Cerrar sesión">
+              🚪
+              {!sidebarCollapsed && <span>Salir</span>}
+            </button>
+          </div>
         </div>
       </aside>
 
