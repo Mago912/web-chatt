@@ -388,11 +388,6 @@ function App() {
     showNotification('👋 Sesión cerrada');
   };
 
-  // Si no está autenticado, mostrar pantalla de login
-  if (!isAuthenticated) {
-    return <LoginScreen onLogin={handleLogin} error={loginError} />;
-  }
-
   // ==========================================
   // CRUD HANDLERS
   // ==========================================
@@ -526,6 +521,11 @@ function App() {
     const interval = setInterval(updateOrders, 5000); // Cada 5 segundos
     return () => clearInterval(interval);
   }, []);
+
+  // Si no está autenticado, mostrar pantalla de login
+  if (!isAuthenticated) {
+    return <LoginScreen onLogin={handleLogin} error={loginError} />;
+  }
 
   // ==========================================
   // RENDER VIEWS
