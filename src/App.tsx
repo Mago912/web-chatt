@@ -251,6 +251,7 @@ const usuariosPrueba = [
   { dni: '12345678', password: 'admin123', codigo: '1234', nombre: 'Admin Sistema', rol: 'admin' },
   { dni: '23456789', password: 'super123', codigo: '2345', nombre: 'Nicolás Romero', rol: 'supervisor' },
   { dni: '34567890', password: 'agent123', codigo: '3456', nombre: 'Sofía Ríos', rol: 'agente' },
+  { dni: '99999999', password: 'cliente123', codigo: '9999', nombre: 'Juan Pérez', rol: 'cliente' },
 ];
 
 // ==========================================
@@ -333,6 +334,9 @@ function LoginScreen({ onLogin, error }: { onLogin: (dni: string, password: stri
             </div>
             <div className="credential-item">
               <strong>Agente:</strong> 34567890 / agent123 / 3456
+            </div>
+            <div className="credential-item">
+              <strong>Cliente:</strong> 99999999 / cliente123 / 9999
             </div>
           </div>
         </div>
@@ -419,8 +423,42 @@ function App() {
   const handleLogout = () => {
     setIsAuthenticated(false);
     setCurrentUser(null);
+    // Limpiar datos de cliente en localStorage si es cliente
+    if (currentUser?.rol === 'cliente') {
+      localStorage.removeItem('nexo_cliente_session');
+    }
     showNotification('👋 Sesión cerrada');
   };
+
+  // ==========================================
+  // SINCRONIZACIÓN EN TIEMPO REAL (localStorage)
+  // ==========================================
+  useEffect(() => {
+    // Escuchar cambios de localStorage para sincronización entre pestañas
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'nexo_conversaciones') {
+        const nuevasConversaciones = JSON.parse(e.newValue || '[]');
+        setConversaciones(nuevasConversaciones);
+      }
+      if (e.key === 'nexo_ordenes') {
+        const nuevasOrdenes = JSON.parse(e.newValue || '[]');
+        setOrdenes(nuevasOrdenes);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  // Sincronizar conversaciones con localStorage
+  useEffect(() => {
+    localStorage.setItem('nexo_conversaciones', JSON.stringify(conversaciones));
+  }, [conversaciones]);
+
+  // Sincronizar órdenes con localStorage
+  useEffect(() => {
+    localStorage.setItem('nexo_ordenes', JSON.stringify(ordenes));
+  }, [ordenes]);
 
   // Función helper para etiquetas de estado
   const getEstadoLabel = (estado: string): string => {
@@ -613,6 +651,11 @@ function App() {
   // Si no está autenticado, mostrar pantalla de login
   if (!isAuthenticated) {
     return <LoginScreen onLogin={handleLogin} error={loginError} />;
+  }
+
+  // Si es cliente, mostrar vista de cliente
+  if (currentUser?.rol === 'cliente') {
+    return <ClienteView currentUser={currentUser} conversaciones={conversaciones} setConversaciones={setConversaciones} ordenes={ordenes} usuarios={usuarios} />;
   }
 
   // ==========================================
@@ -1336,6 +1379,342 @@ function App() {
       )}
     </div>
   );
+}
+
+// ==========================================
+// CLIENTE VIEW (Widget de Chat en Tiempo Real)
+// ==========================================
+function ClienteView({ currentUser, conversaciones, setConversaciones, ordenes, usuarios }: any) {
+  const [chatActivo, setChatActivo] = useState<any>(null);
+  const [mensajeInput, setMensajeInput] = useState('');
+  const [pedidoSeleccionado, setPedidoSeleccionado] = useState<string>('');
+  const [motivo, setMotivo] = useState('');
+  const [showOrderStatus, setShowOrderStatus] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Obtener pedidos del cliente
+  const misPedidos = ordenes.filter((o: Orden) => o.clienteNombre === currentUser.nombre);
+
+  // Sincronizar con localStorage (tiempo real)
+  useEffect(() => {
+    const syncConversaciones = () => {
+      const stored = localStorage.getItem('nexo_conversaciones');
+      if (stored) {
+        const conversacionesActualizadas = JSON.parse(stored);
+        setConversaciones(conversacionesActualizadas);
+        
+        // Actualizar chat activo si existe
+        if (chatActivo) {
+          const chatActualizado = conversacionesActualizadas.find((c: Conversacion) => c.id === chatActivo.id);
+          if (chatActualizado) {
+            setChatActivo(chatActualizado);
+          }
+        }
+      }
+    };
+
+    const interval = setInterval(syncConversaciones, 1000); // Sincronizar cada segundo
+    return () => clearInterval(interval);
+  }, [chatActivo]);
+
+  // Scroll automático al último mensaje
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [chatActivo?.mensajes.length]);
+
+  // Iniciar nuevo chat
+  const iniciarChat = () => {
+    if (!pedidoSeleccionado || !motivo) {
+      alert('Por favor selecciona un pedido y un motivo');
+      return;
+    }
+
+    const pedido = misPedidos.find((p: Orden) => p.numero === pedidoSeleccionado);
+    const nuevoChat: Conversacion = {
+      id: Date.now(),
+      cliente: currentUser.nombre,
+      avatar: currentUser.nombre.split(' ').map((n: string) => n[0]).join('').substring(0, 2),
+      color: 'blue',
+      dni: currentUser.dni,
+      email: currentUser.email || '',
+      tel: currentUser.telefono || '',
+      clienteDesde: 2024,
+      pedidos: misPedidos.length,
+      casos: 0,
+      pedido: pedido ? {
+        num: pedido.numero,
+        producto: pedido.producto,
+        monto: pedido.monto,
+        entrega: 'Entrega a domicilio',
+        fecha: pedido.fecha,
+        estado: pedido.estado,
+        estadoLabel: getEstadoLabelPedido(pedido.estado)
+      } : null,
+      motivo: motivo,
+      estado: 'esperando',
+      tiempo: '0m 00s',
+      unread: true,
+      ultimoMsg: '',
+      mensajes: [
+        {
+          id: Date.now(),
+          tipo: 'sistema',
+          texto: 'Chat iniciado · Canal: Web fravega.com',
+          hora: new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }),
+          leido: true
+        },
+        {
+          id: Date.now() + 1,
+          tipo: 'bot',
+          emisor: 'Bot Nexo',
+          texto: '¡Hola! 👋 Soy el asistente virtual de Frávega. Un agente te atenderá en breves momentos.',
+          hora: new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }),
+          leido: true
+        }
+      ]
+    };
+
+    setConversaciones([...conversaciones, nuevoChat]);
+    setChatActivo(nuevoChat);
+  };
+
+  // Enviar mensaje
+  const enviarMensaje = () => {
+    if (!mensajeInput.trim() || !chatActivo) return;
+
+    const nuevoMensaje: Mensaje = {
+      id: Date.now(),
+      tipo: 'cliente',
+      emisor: currentUser.nombre,
+      texto: mensajeInput,
+      hora: new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }),
+      leido: false
+    };
+
+    const conversacionActualizada = {
+      ...chatActivo,
+      mensajes: [...chatActivo.mensajes, nuevoMensaje],
+      ultimoMsg: mensajeInput
+    };
+
+    setChatActivo(conversacionActualizada);
+    setConversaciones(conversaciones.map((c: Conversacion) => 
+      c.id === chatActivo.id ? conversacionActualizada : c
+    ));
+    setMensajeInput('');
+  };
+
+  // Obtener información del agente asignado
+  const getAgenteInfo = () => {
+    if (!chatActivo || chatActivo.estado === 'esperando') return null;
+    
+    // Buscar agente asignado (simulado - en producción vendría del backend)
+    const agente = usuarios.find((u: Usuario) => u.rol === 'agent' && u.estado === 'available');
+    return agente || usuarios.find((u: Usuario) => u.rol === 'agent');
+  };
+
+  const agenteInfo = getAgenteInfo();
+
+  return (
+    <div className="cliente-view">
+      <div className="cliente-header">
+        <div className="cliente-brand">
+          <div className="cliente-logo">N</div>
+          <div>
+            <h1>Nexo Web Chat</h1>
+            <p>Atención al Cliente · Frávega</p>
+          </div>
+        </div>
+        <div className="cliente-user-info">
+          <span>👤 {currentUser.nombre}</span>
+          <button className="btn-secondary" onClick={() => {
+            localStorage.removeItem('nexo_cliente_session');
+            window.location.reload();
+          }}>
+            Cerrar Sesión
+          </button>
+        </div>
+      </div>
+
+      <div className="cliente-content">
+        {!chatActivo ? (
+          <div className="cliente-inicio">
+            <div className="cliente-card">
+              <h2>💬 Iniciar Conversación</h2>
+              <p>Selecciona un pedido y el motivo de tu consulta</p>
+              
+              <div className="cliente-form">
+                <div className="form-group">
+                  <label>Mis Pedidos</label>
+                  <select value={pedidoSeleccionado} onChange={(e) => setPedidoSeleccionado(e.target.value)}>
+                    <option value="">Seleccionar pedido...</option>
+                    {misPedidos.map((p: Orden) => (
+                      <option key={p.id} value={p.numero}>
+                        {p.numero} - {p.producto} (${p.monto.toLocaleString()})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>Motivo de Consulta</label>
+                  <select value={motivo} onChange={(e) => setMotivo(e.target.value)}>
+                    <option value="">Seleccionar motivo...</option>
+                    <option value="Estado del pedido">Estado del pedido</option>
+                    <option value="Demora en entrega">Demora en entrega</option>
+                    <option value="Consulta de producto">Consulta de producto</option>
+                    <option value="Cambio/Devolución">Cambio/Devolución</option>
+                    <option value="Soporte técnico">Soporte técnico</option>
+                    <option value="Otro">Otro</option>
+                  </select>
+                </div>
+
+                <button className="btn-primary btn-large" onClick={iniciarChat}>
+                  💬 Iniciar Chat
+                </button>
+              </div>
+            </div>
+
+            <div className="cliente-card">
+              <h2>📦 Estado de Mis Pedidos</h2>
+              <div className="pedidos-list">
+                {misPedidos.map((p: Orden) => (
+                  <div key={p.id} className="pedido-item">
+                    <div className="pedido-header">
+                      <strong>{p.numero}</strong>
+                      <span className={`status-badge ${p.estado}`}>
+                        {getEstadoLabelPedido(p.estado)}
+                      </span>
+                    </div>
+                    <div className="pedido-details">
+                      <p>{p.producto}</p>
+                      <p className="pedido-monto">${p.monto.toLocaleString()}</p>
+                      <p className="pedido-fecha">Entrega: {p.fecha}</p>
+                    </div>
+                    <div className="pedido-progress">
+                      <div className={`progress-bar ${p.estado}`}>
+                        <div className={`progress-fill ${p.estado}`}></div>
+                      </div>
+                      <div className="progress-labels">
+                        <span>Preparando</span>
+                        <span>Enviando</span>
+                        <span>Entregado</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="cliente-chat-container">
+            <div className="cliente-chat-main">
+              <div className="cliente-chat-header">
+                <div className="chat-header-info">
+                  <div className="chat-avatar blue">AT</div>
+                  <div>
+                    <h3>Atención al Cliente</h3>
+                    <p>{chatActivo.motivo} · Pedido {chatActivo.pedido?.num}</p>
+                  </div>
+                </div>
+                <div className="chat-status-indicator">
+                  {chatActivo.estado === 'esperando' ? (
+                    <span className="status-waiting">⏳ Esperando agente...</span>
+                  ) : chatActivo.estado === 'activo' ? (
+                    <span className="status-active">✅ En atención</span>
+                  ) : (
+                    <span className="status-resolved">✅ Resuelto</span>
+                  )}
+                </div>
+              </div>
+
+              <div className="cliente-chat-messages">
+                {chatActivo.mensajes.map((msg: Mensaje) => (
+                  <div key={msg.id} className={`message ${msg.tipo}`}>
+                    {msg.tipo !== 'sistema' && (
+                      <div className="message-header">
+                        <span className="message-sender">{msg.emisor}</span>
+                        <span className="message-time">{msg.hora}</span>
+                      </div>
+                    )}
+                    <div className="message-bubble">{msg.texto}</div>
+                  </div>
+                ))}
+                <div ref={messagesEndRef}></div>
+              </div>
+
+              <div className="cliente-chat-input">
+                <input
+                  type="text"
+                  placeholder="Escribe tu mensaje..."
+                  value={mensajeInput}
+                  onChange={(e) => setMensajeInput(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && enviarMensaje()}
+                  disabled={chatActivo.estado === 'resuelto'}
+                />
+                <button onClick={enviarMensaje} disabled={!mensajeInput.trim() || chatActivo.estado === 'resuelto'}>
+                  ➤
+                </button>
+              </div>
+            </div>
+
+            <div className="cliente-chat-sidebar">
+              {agenteInfo && chatActivo.estado !== 'esperando' ? (
+                <div className="agente-info-card">
+                  <h3>👨‍💼 Tu Agente</h3>
+                  <div className="agente-details">
+                    <div className="agente-avatar-large">
+                      {agenteInfo.nombre.split(' ').map((n: string) => n[0]).join('')}
+                    </div>
+                    <div className="agente-info">
+                      <strong>{agenteInfo.nombre}</strong>
+                      <span className={`agente-status ${agenteInfo.estado}`}>
+                        {agenteInfo.estado === 'available' ? '🟢 Disponible' :
+                         agenteInfo.estado === 'busy' ? '🔴 Ocupado' :
+                         agenteInfo.estado === 'break' ? '🟡 En pausa' : '⚫ Desconectado'}
+                      </span>
+                      <span className="agente-role">Agente de Atención</span>
+                      <span className="agente-shift">Turno: 14:00 - 22:00</span>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="agente-info-card waiting">
+                  <h3>⏳ Buscando Agente</h3>
+                  <p>Un agente te atenderá en breves momentos...</p>
+                </div>
+              )}
+
+              {chatActivo.pedido && (
+                <div className="pedido-info-card">
+                  <h3>📦 Tu Pedido</h3>
+                  <div className="pedido-details-compact">
+                    <p><strong>{chatActivo.pedido.num}</strong></p>
+                    <p>{chatActivo.pedido.producto}</p>
+                    <p className={`status-badge ${chatActivo.pedido.estado}`}>
+                      {chatActivo.pedido.estadoLabel}
+                    </p>
+                    <p className="pedido-fecha">Entrega: {chatActivo.pedido.fecha}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Helper function para etiquetas de estado de pedidos
+function getEstadoLabelPedido(estado: string): string {
+  const map: Record<string, string> = {
+    'preparing': 'Preparando',
+    'shipping': 'En envío',
+    'delivered': 'Entregado',
+    'delayed': 'Demorado'
+  };
+  return map[estado] || estado;
 }
 
 // ==========================================
