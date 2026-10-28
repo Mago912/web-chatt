@@ -73,6 +73,7 @@ interface Usuario {
   email: string;
   rol: string;
   estado: string;
+  breakEndsAt: number | null;
 }
 
 interface RespuestaRapida {
@@ -105,12 +106,27 @@ interface Escalacion {
 // DATA
 // ==========================================
 const respuestasRapidasData: RespuestaRapida[] = [
-  { id: 1, atajo: '/saludo', titulo: 'Saludo inicial', contenido: '¡Hola! 👋 Soy Sofía, asesora de Frávega. ¿En qué puedo ayudarte hoy?', categoria: 'General' },
-  { id: 2, atajo: '/estado', titulo: 'Estado del pedido', contenido: 'Estoy consultando el estado de tu pedido en nuestro sistema. Un momento por favor.', categoria: 'Logística' },
-  { id: 3, atajo: '/demora', titulo: 'Demora en entrega', contenido: 'Comprendo tu frustración. Voy a escalar tu caso al área de logística para priorizar tu entrega.', categoria: 'Logística' },
-  { id: 4, atajo: '/promos', titulo: 'Promociones bancarias', contenido: 'Promociones vigentes:\n🏦 Santander: 3, 6 y 12 cuotas SI\n🏦 Galicia: 3 y 6 SI + 10%\n🏦 BBVA: 12 y 18 SI', categoria: 'Preventa' },
-  { id: 5, atajo: '/cambio', titulo: 'Cambio/Devolución', contenido: 'Dentro de los 10 días podés ejercer tu derecho de cambio/devolución sin costo. ¿Iniciamos el trámite?', categoria: 'Postventa' },
-  { id: 6, atajo: '/cierre', titulo: 'Cierre de chat', contenido: '¡Fue un placer atenderte! 😊 Si tenés otra consulta, no dudes en contactarnos. ¡Excelente día!', categoria: 'General' },
+  // General
+  { id: 1, atajo: '/saludo', titulo: 'Saludo inicial', contenido: '¡Hola {{customer_name}}! 👋 Mi nombre es {{agent_name}} y soy tu asesor/a de Frávega. ¿En qué puedo ayudarte el día de hoy?', categoria: 'General' },
+  { id: 2, atajo: '/despedida', titulo: 'Cierre de chat', contenido: '¡Fue un placer atenderte, {{customer_name}}! 😊 Si tenés otra consulta, no dudes en contactarnos nuevamente. ¡Que tengas un excelente día!', categoria: 'General' },
+  { id: 3, atajo: '/espera', titulo: 'Poner en espera', contenido: 'Un momento por favor, {{customer_name}}. Estoy revisando tu consulta y te respondo en breve. ¡Gracias por tu paciencia!', categoria: 'General' },
+  { id: 4, atajo: '/transfer', titulo: 'Transferir a supervisor', contenido: '{{customer_name}}, voy a transferirte con un supervisor que podrá ayudarte mejor con tu caso. Un momento por favor.', categoria: 'General' },
+  // Logística
+  { id: 5, atajo: '/estado', titulo: 'Consultar estado del pedido', contenido: 'Estoy consultando el estado de tu pedido {{order_number}} en nuestro sistema logístico, {{customer_name}}. Te pido un momento mientras verifico la información actualizada.', categoria: 'Logística' },
+  { id: 6, atajo: '/demora', titulo: 'Demora en entrega', contenido: 'Comprendo tu frustración por la demora, {{customer_name}}. Voy a escalar tu caso al área de logística para priorizar tu entrega del pedido {{order_number}}. Te mantendré informado/a.', categoria: 'Logística' },
+  { id: 7, atajo: '/reprogramar', titulo: 'Reprogramar entrega', contenido: 'Sin problema, {{customer_name}}. Puedo reprogramar la entrega de tu pedido {{order_number}}. ¿Qué fecha te quedaría mejor? Tené en cuenta que tenemos disponibilidad a partir de 48hs hábiles.', categoria: 'Logística' },
+  { id: 8, atajo: '/tracking', titulo: 'Código de seguimiento', contenido: 'Tu código de seguimiento para el pedido {{order_number}} es: [TRACKING_CODE]. Podés consultar el estado en cualquier momento en fravega.com/seguimiento', categoria: 'Logística' },
+  // Preventa
+  { id: 9, atajo: '/promos', titulo: 'Promociones bancarias', contenido: '¡Excelente pregunta, {{customer_name}}! Estas son las promos vigentes:\n\n🏦 Santander: 3, 6 y 12 cuotas SI\n🏦 Galicia: 3 y 6 cuotas SI + 10% extra\n🏦 BBVA: 12 y 18 cuotas SI\n🏦 Macro: 6 cuotas SI\n🏦 Naranja: 12 cuotas SI\n\n💳 También aceptamos Mercado Pago. ¿Sobre qué producto te gustaría consultar?', categoria: 'Preventa' },
+  { id: 10, atajo: '/stock', titulo: 'Consulta de stock', contenido: 'Déjame verificar el stock disponible en nuestras sucursales, {{customer_name}}. ¿Podrías indicarme en qué zona estás o qué sucursal te queda más cómoda?', categoria: 'Preventa' },
+  { id: 11, atajo: '/retiro', titulo: 'Retiro en sucursal', contenido: '¡Perfecto, {{customer_name}}! Tu pedido {{order_number}} ya está disponible para retiro en la sucursal que elegiste. Recordá traer tu DNI y el código de compra que te enviamos por email.', categoria: 'Preventa' },
+  { id: 12, atajo: '/retiro-tercero', titulo: 'Retiro por tercero', contenido: 'Para que otra persona retire tu pedido, {{customer_name}}, necesitás:\n\n📋 Autorización firmada por el titular\n📋 Copia del DNI del titular\n📋 Código de compra (enviado por email)\n📋 DNI original de quien retira\n\n¿Necesitás que te envíe el modelo de autorización?', categoria: 'Preventa' },
+  // Postventa
+  { id: 13, atajo: '/cambio', titulo: 'Cambio/Devolución', contenido: 'Dentro de los 10 días corridos desde la recepción, podés ejercer tu derecho de cambio o devolución sin costo, {{customer_name}}. Para iniciar el trámite necesito:\n\n1. Número de pedido\n2. Motivo del cambio/devolución\n3. Fotos del producto (si hay daño)\n\n¿Iniciamos el trámite?', categoria: 'Postventa' },
+  { id: 14, atajo: '/garantia', titulo: 'Consulta de garantía', contenido: 'Tu producto cuenta con garantía oficial del fabricante, {{customer_name}}. Para gestionar el servicio técnico necesito:\n\n1. Número de pedido\n2. Descripción de la falla\n3. Fotos o video del problema\n\nEl plazo de respuesta es de 48hs hábiles.', categoria: 'Postventa' },
+  { id: 15, atajo: '/producto-dañado', titulo: 'Producto dañado al recibir', contenido: 'Lamento mucho lo sucedido, {{customer_name}}. Voy a generar un reclamo inmediatamente. ¿Podrías enviarme fotos del daño por este chat? Necesito documentar el caso para resolverlo a la brevedad.', categoria: 'Postventa' },
+  // Facturación
+  { id: 16, atajo: '/factura', titulo: 'Consulta de facturación', contenido: 'Para ayudarte con la facturación, {{customer_name}}, necesito:\n\n📄 CUIT/CUIL\n📄 Datos de facturación actualizados\n📄 Número de pedido\n\nSi necesitás cambiar de Factura B a A, voy a derivar tu caso al área de facturación. Plazo: 48hs hábiles.', categoria: 'Facturación' },
 ];
 
 const articulosKB: ArticuloKB[] = [
@@ -220,12 +236,12 @@ const ordenesIniciales: Orden[] = [
 ];
 
 const usuariosIniciales: Usuario[] = [
-  { id: 1, nombre: 'Sofía Ríos', email: 'sofia.rios@fravega.com', rol: 'agent', estado: 'available' },
-  { id: 2, nombre: 'Martín Pereyra', email: 'martin.pereyra@fravega.com', rol: 'agent', estado: 'busy' },
-  { id: 3, nombre: 'Valentina Torres', email: 'valentina.torres@fravega.com', rol: 'agent', estado: 'available' },
-  { id: 4, nombre: 'Diego Álvarez', email: 'diego.alvarez@fravega.com', rol: 'agent', estado: 'break' },
-  { id: 5, nombre: 'Nicolás Romero', email: 'nicolas.romero@fravega.com', rol: 'supervisor', estado: 'available' },
-  { id: 6, nombre: 'Camila Sánchez', email: 'camila.sanchez@fravega.com', rol: 'agent', estado: 'offline' },
+  { id: 1, nombre: 'Sofía Ríos', email: 'sofia.rios@fravega.com', rol: 'agent', estado: 'available', breakEndsAt: null },
+  { id: 2, nombre: 'Martín Pereyra', email: 'martin.pereyra@fravega.com', rol: 'agent', estado: 'busy', breakEndsAt: null },
+  { id: 3, nombre: 'Valentina Torres', email: 'valentina.torres@fravega.com', rol: 'agent', estado: 'available', breakEndsAt: null },
+  { id: 4, nombre: 'Diego Álvarez', email: 'diego.alvarez@fravega.com', rol: 'agent', estado: 'break', breakEndsAt: Date.now() + 15 * 60 * 1000 }, // 15 min
+  { id: 5, nombre: 'Nicolás Romero', email: 'nicolas.romero@fravega.com', rol: 'supervisor', estado: 'available', breakEndsAt: null },
+  { id: 6, nombre: 'Camila Sánchez', email: 'camila.sanchez@fravega.com', rol: 'agent', estado: 'offline', breakEndsAt: null },
 ];
 
 // ==========================================
@@ -349,12 +365,30 @@ function App() {
   const [showQuickReplies, setShowQuickReplies] = useState(false);
   const [searchKB, setSearchKB] = useState('');
   const [selectedKB, setSelectedKB] = useState<number>(1);
+  const [qrCategory, setQrCategory] = useState<string>('Todas');
+  const [loadingResource, setLoadingResource] = useState<string | null>(null);
+  const [currentTime, setCurrentTime] = useState<number>(Date.now());
 
   const selectedChat = conversaciones.find(c => c.id === selectedChatId) || conversaciones[0];
+
+  // Actualizar tiempo actual cada segundo para countdowns
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   const showNotification = (msg: string) => {
     setNotification(msg);
     setTimeout(() => setNotification(null), 3000);
+  };
+
+  // Función para personalizar respuestas rápidas con variables dinámicas
+  const personalizeReply = (content: string, customerName?: string, orderNumber?: string): string => {
+    let result = content;
+    result = result.replace(/\{\{agent_name\}\}/g, currentUser?.nombre || 'Asesor/a');
+    result = result.replace(/\{\{customer_name\}\}/g, customerName || 'cliente');
+    result = result.replace(/\{\{order_number\}\}/g, orderNumber || '#XXXXX');
+    return result;
   };
 
   const toggleTheme = () => {
@@ -388,6 +422,30 @@ function App() {
     showNotification('👋 Sesión cerrada');
   };
 
+  // Función helper para etiquetas de estado
+  const getEstadoLabel = (estado: string): string => {
+    const map: Record<string, string> = {
+      'preparing': 'Preparando',
+      'shipping': 'En envío',
+      'delivered': 'Entregado',
+      'delayed': 'Demorado',
+      'available': 'Disponible',
+      'busy': 'Ocupado',
+      'break': 'En pausa',
+      'offline': 'Desconectado'
+    };
+    return map[estado] || estado;
+  };
+
+  // Función para formatear tiempo restante
+  const formatTimeRemaining = (endsAt: number | null): string => {
+    if (!endsAt) return '';
+    const remaining = Math.max(0, endsAt - currentTime);
+    const minutes = Math.floor(remaining / 60000);
+    const seconds = Math.floor((remaining % 60000) / 1000);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
   // ==========================================
   // CRUD HANDLERS
   // ==========================================
@@ -401,17 +459,41 @@ function App() {
   const handleSave = (data: any) => {
     if (modalType === 'create') {
       if (modalResource === 'cliente') {
-        const newId = Math.max(...clientes.map(c => c.id)) + 1;
-        setClientes([...clientes, { ...data, id: newId }]);
-        showNotification('✅ Cliente creado exitosamente');
+        setLoadingResource('cliente');
+        setTimeout(() => {
+          const newId = Math.max(...clientes.map(c => c.id)) + 1;
+          setClientes([...clientes, { ...data, id: newId }]);
+          showNotification('✅ Cliente creado exitosamente');
+          setLoadingResource(null);
+        }, 800);
       } else if (modalResource === 'orden') {
-        const newId = Math.max(...ordenes.map(o => o.id)) + 1;
-        setOrdenes([...ordenes, { ...data, id: newId }]);
-        showNotification('✅ Pedido creado exitosamente');
+        setLoadingResource('orden');
+        setTimeout(() => {
+          const newId = Math.max(...ordenes.map(o => o.id)) + 1;
+          const newOrder = { 
+            ...data, 
+            id: newId,
+            estado: data.estado || 'preparing',
+            fecha: data.fecha || new Date().toLocaleDateString('es-AR')
+          };
+          setOrdenes([newOrder, ...ordenes]);
+          showNotification(`✅ Pedido ${data.numero} creado con estado: ${getEstadoLabel(data.estado || 'preparing')}`);
+          setLoadingResource(null);
+        }, 800);
       } else if (modalResource === 'usuario') {
-        const newId = Math.max(...usuarios.map(u => u.id)) + 1;
-        setUsuarios([...usuarios, { ...data, id: newId }]);
-        showNotification('✅ Usuario creado exitosamente');
+        setLoadingResource('usuario');
+        setTimeout(() => {
+          const newId = Math.max(...usuarios.map(u => u.id)) + 1;
+          const newUser = {
+            ...data,
+            id: newId,
+            estado: data.estado || 'available',
+            breakEndsAt: null
+          };
+          setUsuarios([newUser, ...usuarios]);
+          showNotification(`✅ Usuario ${data.nombre} creado con estado: ${getEstadoLabel(data.estado || 'available')}`);
+          setLoadingResource(null);
+        }, 800);
       }
     } else if (modalType === 'edit') {
       if (modalResource === 'cliente') {
@@ -462,7 +544,13 @@ function App() {
   };
 
   const insertQuickReply = (content: string) => {
-    setMessageInput(content);
+    // Personalizar la respuesta con variables dinámicas
+    const personalized = personalizeReply(
+      content,
+      selectedChat?.cliente,
+      selectedChat?.pedido?.num
+    );
+    setMessageInput(personalized);
     setShowQuickReplies(false);
   };
 
@@ -518,7 +606,7 @@ function App() {
       }));
     };
     
-    const interval = setInterval(updateOrders, 5000); // Cada 5 segundos
+    const interval = setInterval(updateOrders, 2000); // Cada 2 segundos (actualizado)
     return () => clearInterval(interval);
   }, []);
 
@@ -699,18 +787,34 @@ function App() {
               <div className="chat-input-area">
                 <div className="chat-toolbar">
                   <button className={`toolbar-btn ${showQuickReplies ? 'active' : ''}`} onClick={() => setShowQuickReplies(!showQuickReplies)}>⚡ Respuestas rápidas</button>
+                  {showQuickReplies && (
+                    <div className="qr-filters">
+                      {['Todas', 'General', 'Logística', 'Preventa', 'Postventa', 'Facturación'].map(cat => (
+                        <button 
+                          key={cat}
+                          className={`qr-filter-btn ${qrCategory === cat ? 'active' : ''}`}
+                          onClick={() => setQrCategory(cat)}
+                        >
+                          {cat}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 {showQuickReplies && (
-                  <div className="quick-replies-panel">
-                    {respuestasRapidasData.map(qr => (
-                      <div key={qr.id} className="quick-reply-item" onClick={() => insertQuickReply(qr.contenido)}>
-                        <div className="quick-reply-header">
-                          <span className="quick-reply-shortcut">{qr.atajo}</span>
-                          <span className="quick-reply-title">{qr.titulo}</span>
+                  <div className="quick-replies-panel expanded">
+                    {respuestasRapidasData
+                      .filter(qr => qrCategory === 'Todas' || qr.categoria === qrCategory)
+                      .map(qr => (
+                        <div key={qr.id} className="quick-reply-item" onClick={() => insertQuickReply(qr.contenido)}>
+                          <div className="quick-reply-header">
+                            <span className="quick-reply-shortcut">{qr.atajo}</span>
+                            <span className="quick-reply-title">{qr.titulo}</span>
+                            <span className="quick-reply-category-tag">{qr.categoria}</span>
+                          </div>
+                          <div className="quick-reply-preview">{qr.contenido}</div>
                         </div>
-                        <div className="quick-reply-preview">{qr.contenido}</div>
-                      </div>
-                    ))}
+                      ))}
                   </div>
                 )}
                 <div className="chat-input">
@@ -789,9 +893,11 @@ function App() {
         <div className="view-header">
           <div>
             <h1>Pedidos</h1>
-            <p>Gestión de pedidos y órdenes</p>
+            <p>Gestión de pedidos y órdenes · Actualización cada 2 segundos</p>
           </div>
-          <button className="btn-primary" onClick={() => openModal('create', 'orden')}>+ Nuevo Pedido</button>
+          <button className="btn-primary" onClick={() => openModal('create', 'orden')} disabled={loadingResource === 'orden'}>
+            {loadingResource === 'orden' ? '⏳ Creando...' : '+ Nuevo Pedido'}
+          </button>
         </div>
         <div className="table-container">
           <table className="data-table">
@@ -807,13 +913,17 @@ function App() {
               </tr>
             </thead>
             <tbody>
-              {ordenes.map(orden => (
-                <tr key={orden.id}>
-                  <td>{orden.numero}</td>
+              {ordenes.map((orden, index) => (
+                <tr key={orden.id} className={index === 0 && loadingResource === 'orden' ? 'new-item-row' : ''}>
+                  <td><strong>{orden.numero}</strong></td>
                   <td>{orden.clienteNombre}</td>
                   <td>{orden.producto}</td>
                   <td>${orden.monto.toLocaleString()}</td>
-                  <td><span className={`status-badge ${orden.estado}`}>{orden.estado}</span></td>
+                  <td>
+                    <span className={`status-badge ${orden.estado}`}>
+                      {getEstadoLabel(orden.estado)}
+                    </span>
+                  </td>
                   <td>{orden.fecha}</td>
                   <td>
                     <button className="btn-icon" onClick={() => openModal('edit', 'orden', orden)}>✏️</button>
@@ -839,7 +949,9 @@ function App() {
             <h1>Usuarios</h1>
             <p>Gestión de agentes y supervisores</p>
           </div>
-          <button className="btn-primary" onClick={() => openModal('create', 'usuario')}>+ Nuevo Usuario</button>
+          <button className="btn-primary" onClick={() => openModal('create', 'usuario')} disabled={loadingResource === 'usuario'}>
+            {loadingResource === 'usuario' ? '⏳ Creando...' : '+ Nuevo Usuario'}
+          </button>
         </div>
         <div className="table-container">
           <table className="data-table">
@@ -849,22 +961,46 @@ function App() {
                 <th>Email</th>
                 <th>Rol</th>
                 <th>Estado</th>
+                <th>Tiempo de Descanso</th>
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {usuarios.map(usuario => (
-                <tr key={usuario.id}>
-                  <td>{usuario.nombre}</td>
-                  <td>{usuario.email}</td>
-                  <td><span className="role-badge">{usuario.rol}</span></td>
-                  <td><span className={`status-badge ${usuario.estado}`}>{usuario.estado}</span></td>
-                  <td>
-                    <button className="btn-icon" onClick={() => openModal('edit', 'usuario', usuario)}>✏️</button>
-                    <button className="btn-icon" onClick={() => openModal('delete', 'usuario', usuario)}>🗑️</button>
-                  </td>
-                </tr>
-              ))}
+              {usuarios.map(usuario => {
+                const breakTimeRemaining = usuario.estado === 'break' && usuario.breakEndsAt 
+                  ? formatTimeRemaining(usuario.breakEndsAt)
+                  : null;
+                
+                return (
+                  <tr key={usuario.id} className={loadingResource === 'usuario' ? 'loading-row' : ''}>
+                    <td>{usuario.nombre}</td>
+                    <td>{usuario.email}</td>
+                    <td><span className="role-badge">{usuario.rol}</span></td>
+                    <td>
+                      <span className={`status-badge ${usuario.estado}`}>
+                        {getEstadoLabel(usuario.estado)}
+                      </span>
+                    </td>
+                    <td>
+                      {breakTimeRemaining ? (
+                        <div className="break-timer">
+                          <span className="break-icon">☕</span>
+                          <span className="break-time">{breakTimeRemaining}</span>
+                          <span className="break-label">restante</span>
+                        </div>
+                      ) : usuario.estado === 'break' ? (
+                        <span className="break-ended">Finalizado</span>
+                      ) : (
+                        <span className="no-break">-</span>
+                      )}
+                    </td>
+                    <td>
+                      <button className="btn-icon" onClick={() => openModal('edit', 'usuario', usuario)}>✏️</button>
+                      <button className="btn-icon" onClick={() => openModal('delete', 'usuario', usuario)}>🗑️</button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
