@@ -375,6 +375,30 @@ function App() {
   };
 
   // ==========================================
+  // ACTUALIZACIÓN AUTOMÁTICA DE PEDIDOS (POLLING)
+  // ==========================================
+  useEffect(() => {
+    const updateOrders = () => {
+      // Simular cambios de estado automáticos
+      setOrdenes(prev => prev.map(orden => {
+        // Simular progreso de pedidos
+        if (orden.estado === 'preparing' && Math.random() > 0.7) {
+          showNotification(`📦 Pedido ${orden.numero} cambió a: En envío`);
+          return { ...orden, estado: 'shipping' };
+        }
+        if (orden.estado === 'shipping' && Math.random() > 0.8) {
+          showNotification(`✅ Pedido ${orden.numero} fue entregado`);
+          return { ...orden, estado: 'delivered' };
+        }
+        return orden;
+      }));
+    };
+    
+    const interval = setInterval(updateOrders, 5000); // Cada 5 segundos
+    return () => clearInterval(interval);
+  }, []);
+
+  // ==========================================
   // RENDER VIEWS
   // ==========================================
   const renderView = () => {
