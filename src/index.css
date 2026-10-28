@@ -2493,6 +2493,15 @@ select:focus-visible {
   justify-content: center;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 20px;
+  overflow-y: auto;
+}
+
+/* Asegurar que el login sea scrollable en pantallas pequeñas */
+@media (max-height: 800px) {
+  .login-container {
+    align-items: flex-start;
+    padding: 40px 20px;
+  }
 }
 
 [data-theme="dark"] .login-container {
