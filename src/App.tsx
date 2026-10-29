@@ -476,35 +476,9 @@ function App() {
 
     window.addEventListener('storage', handleStorageChange);
     
-    // POLLING: Leer de localStorage cada 500ms (más rápido)
-    const syncInterval = setInterval(() => {
-      // Sincronizar conversaciones
-      const storedConversaciones = localStorage.getItem('nexo_conversaciones');
-      if (storedConversaciones) {
-        try {
-          const nuevasConversaciones = JSON.parse(storedConversaciones);
-          setConversaciones(nuevasConversaciones);
-        } catch (e) {
-          console.error('Error syncing conversaciones:', e);
-        }
-      }
-      
-      // Sincronizar órdenes
-      const storedOrdenes = localStorage.getItem('nexo_ordenes');
-      if (storedOrdenes) {
-        try {
-          const nuevasOrdenes = JSON.parse(storedOrdenes);
-          setOrdenes(nuevasOrdenes);
-        } catch (e) {
-          console.error('Error syncing ordenes:', e);
-        }
-      }
-    }, 500);
-    
     return () => {
       channel.close();
       window.removeEventListener('storage', handleStorageChange);
-      clearInterval(syncInterval);
     };
   }, []);
 
@@ -513,9 +487,13 @@ function App() {
     localStorage.setItem('nexo_conversaciones', JSON.stringify(conversaciones));
     
     // Notificar a otras pestañas
-    const channel = new BroadcastChannel('nexo_sync');
-    channel.postMessage({ type: 'CONVERSACIONES_UPDATE', data: conversaciones });
-    channel.close();
+    try {
+      const channel = new BroadcastChannel('nexo_sync');
+      channel.postMessage({ type: 'CONVERSACIONES_UPDATE', data: conversaciones });
+      channel.close();
+    } catch (e) {
+      console.error('Error broadcasting conversaciones:', e);
+    }
   }, [conversaciones]);
 
   // Sincronizar órdenes con localStorage y BroadcastChannel
@@ -523,9 +501,13 @@ function App() {
     localStorage.setItem('nexo_ordenes', JSON.stringify(ordenes));
     
     // Notificar a otras pestañas
-    const channel = new BroadcastChannel('nexo_sync');
-    channel.postMessage({ type: 'ORDENES_UPDATE', data: ordenes });
-    channel.close();
+    try {
+      const channel = new BroadcastChannel('nexo_sync');
+      channel.postMessage({ type: 'ORDENES_UPDATE', data: ordenes });
+      channel.close();
+    } catch (e) {
+      console.error('Error broadcasting ordenes:', e);
+    }
   }, [ordenes]);
 
   // Función helper para etiquetas de estado
@@ -1493,40 +1475,6 @@ function ClienteView({ currentUser, conversaciones, setConversaciones, ordenes, 
         setPedidosActualizados(data);
       }
     };
-    
-    // POLLING: Leer de localStorage cada 500ms
-    const syncInterval = setInterval(() => {
-      // Sincronizar conversaciones
-      const storedConversaciones = localStorage.getItem('nexo_conversaciones');
-      if (storedConversaciones) {
-        try {
-          const conversacionesActualizadas = JSON.parse(storedConversaciones);
-          setConversaciones(conversacionesActualizadas);
-          
-          // Actualizar chat activo si existe
-          if (chatActivo) {
-            const chatActualizado = conversacionesActualizadas.find((c: Conversacion) => c.id === chatActivo.id);
-            if (chatActualizado) {
-              setChatActivo(chatActualizado);
-            }
-          }
-        } catch (e) {
-          console.error('Error syncing conversaciones:', e);
-        }
-      }
-      
-      // Sincronizar órdenes
-      const storedOrdenes = localStorage.getItem('nexo_ordenes');
-      if (storedOrdenes) {
-        try {
-          const ordenesActualizadas = JSON.parse(storedOrdenes);
-          setOrdenes(ordenesActualizadas);
-          setPedidosActualizados(ordenesActualizadas);
-        } catch (e) {
-          console.error('Error syncing ordenes:', e);
-        }
-      }
-    }, 500);
 
     // Escuchar cambios de localStorage (fallback)
     const handleStorageChange = (e: StorageEvent) => {
@@ -1560,7 +1508,6 @@ function ClienteView({ currentUser, conversaciones, setConversaciones, ordenes, 
     
     return () => {
       channel.close();
-      clearInterval(syncInterval);
       window.removeEventListener('storage', handleStorageChange);
     };
   }, [chatActivo]);
