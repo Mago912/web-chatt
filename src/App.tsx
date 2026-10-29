@@ -224,6 +224,7 @@ const clientesIniciales: Cliente[] = [
   { id: 4, nombre: 'Roberto Martínez', dni: '24.112.567', email: 'r.martinez@gmail.com', telefono: '+54 11 3345-7788' },
   { id: 5, nombre: 'Ana López', dni: '30.234.890', email: 'ana.lopez@hotmail.com', telefono: '+54 11 5567-9900' },
   { id: 6, nombre: 'Pedro Sánchez', dni: '27.890.123', email: 'pedro.sanchez@gmail.com', telefono: '+54 11 4456-7788' },
+  { id: 7, nombre: 'Juan Pérez', dni: '99.999.999', email: 'juan.perez@gmail.com', telefono: '+54 11 6677-8899' },
 ];
 
 const ordenesIniciales: Orden[] = [
@@ -233,6 +234,10 @@ const ordenesIniciales: Orden[] = [
   { id: 4, numero: '#10298', clienteId: 5, clienteNombre: 'Ana López', producto: 'Aire Acond. Samsung WindFree', monto: 899999, estado: 'delivered', fecha: '10 Ene 2025' },
   { id: 5, numero: '#10445', clienteId: 4, clienteNombre: 'Roberto Martínez', producto: 'Lavarropas Drean Next 8.15', monto: 599999, estado: 'delayed', fecha: '14 Ene 2025' },
   { id: 6, numero: '#10567', clienteId: 6, clienteNombre: 'Pedro Sánchez', producto: 'Cafetera Nespresso Vertuo', monto: 189999, estado: 'preparing', fecha: '20 Ene 2025' },
+  // Pedidos del cliente Juan Pérez (DNI: 99999999)
+  { id: 7, numero: '#10789', clienteId: 7, clienteNombre: 'Juan Pérez', producto: 'Smart TV LG 55" OLED', monto: 1299999, estado: 'shipping', fecha: '18-20 Ene 2025' },
+  { id: 8, numero: '#10823', clienteId: 7, clienteNombre: 'Juan Pérez', producto: 'Notebook HP Pavilion 15"', monto: 849999, estado: 'preparing', fecha: '22-24 Ene 2025' },
+  { id: 9, numero: '#10856', clienteId: 7, clienteNombre: 'Juan Pérez', producto: 'Auriculares Sony WH-1000XM5', monto: 299999, estado: 'delivered', fecha: '10 Ene 2025' },
 ];
 
 const usuariosIniciales: Usuario[] = [
