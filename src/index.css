@@ -30,7 +30,7 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   background: var(--bg-secondary);
   color: var(--text-primary);
-  overflow: hidden;
+  overflow: visible;
   line-height: 1.6;
   font-size: 14px;
 }
@@ -246,7 +246,8 @@ p {
    ============================================ */
 .view-container {
   padding: 24px;
-  min-height: 100%;
+  height: auto;
+  position: relative;
 }
 
 .view-header {
@@ -254,6 +255,7 @@ p {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 24px;
+  position: relative;
 }
 
 .view-header h1 {
@@ -471,6 +473,7 @@ p {
   border-radius: 12px;
   overflow: visible;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  position: relative;
 }
 
 .data-table {
@@ -498,6 +501,11 @@ p {
   font-size: 14px;
   color: var(--text-primary);
   font-weight: 400;
+  position: relative;
+}
+
+.data-table tbody tr {
+  position: relative;
 }
 
 .data-table tbody tr:hover {
@@ -518,6 +526,7 @@ p {
   cursor: pointer;
   transition: var(--transition);
   letter-spacing: 0.3px;
+  position: relative;
 }
 
 .btn-primary:hover {
@@ -581,6 +590,7 @@ p {
   cursor: pointer;
   font-size: 16px;
   transition: var(--transition);
+  position: relative;
 }
 
 .btn-icon:hover {
