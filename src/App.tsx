@@ -821,8 +821,9 @@ function App() {
   // ==========================================
   function ChatView() {
     return (
-      <div className="chat-layout">
-        <div className="chat-queue">
+      <div className="chat-view-container">
+        <div className="chat-layout">
+          <div className="chat-queue">
           <div className="queue-header">
             <h2>Conversaciones</h2>
             <span className="queue-count">{conversaciones.length}</span>
@@ -931,6 +932,7 @@ function App() {
             </div>
           )}
         </div>
+      </div>
       </div>
     );
   }

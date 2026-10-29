@@ -651,8 +651,16 @@ p {
 /* ============================================
    CHAT LAYOUT
    ============================================ */
+.chat-view-container {
+  height: calc(100vh - 56px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
 .chat-layout {
   display: flex;
+  flex: 1;
   height: 100%;
   overflow: hidden;
 }
@@ -664,6 +672,7 @@ p {
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
+  height: 100%;
 }
 
 .queue-header {
@@ -799,6 +808,8 @@ p {
   display: flex;
   flex-direction: column;
   background: var(--bg-primary);
+  height: 100%;
+  overflow: hidden;
 }
 
 .chat-header {
