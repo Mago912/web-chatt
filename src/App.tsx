@@ -452,7 +452,25 @@ function App() {
     };
 
     window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    
+    // POLLING: Leer de localStorage cada segundo (para sincronización entre pestañas)
+    const syncInterval = setInterval(() => {
+      const storedConversaciones = localStorage.getItem('nexo_conversaciones');
+      if (storedConversaciones) {
+        try {
+          const nuevasConversaciones = JSON.parse(storedConversaciones);
+          // Siempre actualizar para asegurar sincronización
+          setConversaciones(nuevasConversaciones);
+        } catch (e) {
+          console.error('Error parsing conversaciones from localStorage:', e);
+        }
+      }
+    }, 1000);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(syncInterval);
+    };
   }, []);
 
   // Sincronizar conversaciones con localStorage
@@ -632,11 +650,12 @@ function App() {
   // ==========================================
   // ACTUALIZACIÓN AUTOMÁTICA DE PEDIDOS (POLLING)
   // ==========================================
+  // DESACTIVADO: Los pedidos no cambian de estado automáticamente
+  // Solo se actualizan manualmente desde la vista de Pedidos
+  /*
   useEffect(() => {
     const updateOrders = () => {
-      // Simular cambios de estado automáticos
       setOrdenes(prev => prev.map(orden => {
-        // Simular progreso de pedidos
         if (orden.estado === 'preparing' && Math.random() > 0.7) {
           showNotification(`📦 Pedido ${orden.numero} cambió a: En envío`);
           return { ...orden, estado: 'shipping' };
@@ -649,9 +668,10 @@ function App() {
       }));
     };
     
-    const interval = setInterval(updateOrders, 2000); // Cada 2 segundos (actualizado)
+    const interval = setInterval(updateOrders, 30000); // Cada 30 segundos (muy lento)
     return () => clearInterval(interval);
   }, []);
+  */
 
   // Si no está autenticado, mostrar pantalla de login
   if (!isAuthenticated) {
@@ -1690,19 +1710,26 @@ function ClienteView({ currentUser, conversaciones, setConversaciones, ordenes, 
                 </div>
               )}
 
-              {chatActivo.pedido && (
-                <div className="pedido-info-card">
-                  <h3>📦 Tu Pedido</h3>
-                  <div className="pedido-details-compact">
-                    <p><strong>{chatActivo.pedido.num}</strong></p>
-                    <p>{chatActivo.pedido.producto}</p>
-                    <p className={`status-badge ${chatActivo.pedido.estado}`}>
-                      {chatActivo.pedido.estadoLabel}
-                    </p>
-                    <p className="pedido-fecha">Entrega: {chatActivo.pedido.fecha}</p>
+              {chatActivo.pedido && (() => {
+                // Buscar el pedido actualizado en el array de órdenes
+                const pedidoActualizado = ordenes.find((o: Orden) => o.numero === chatActivo.pedido?.num);
+                const estadoActual = pedidoActualizado?.estado || chatActivo.pedido.estado;
+                const estadoLabelActual = getEstadoLabelPedido(estadoActual);
+                
+                return (
+                  <div className="pedido-info-card">
+                    <h3>📦 Tu Pedido</h3>
+                    <div className="pedido-details-compact">
+                      <p><strong>{chatActivo.pedido.num}</strong></p>
+                      <p>{chatActivo.pedido.producto}</p>
+                      <p className={`status-badge ${estadoActual}`}>
+                        {estadoLabelActual}
+                      </p>
+                      <p className="pedido-fecha">Entrega: {chatActivo.pedido.fecha}</p>
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
             </div>
           </div>
         )}
