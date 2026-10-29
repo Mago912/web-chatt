@@ -62,6 +62,8 @@ p {
   height: 100vh;
   width: 100vw;
   overflow: hidden;
+  position: relative;
+  z-index: 1;
 }
 
 /* ============================================
@@ -76,6 +78,8 @@ p {
   transition: var(--transition);
   flex-shrink: 0;
   overflow: hidden;
+  position: relative;
+  z-index: 2;
 }
 
 .app.sidebar-collapsed .sidebar {
@@ -238,6 +242,11 @@ p {
   flex: 1;
   overflow: auto;
   background: var(--bg-secondary);
+  height: 100%;
+  position: relative;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
 }
 
 /* ============================================
@@ -246,7 +255,10 @@ p {
 .view-container {
   padding: 24px;
   height: 100%;
-  overflow-y: auto;
+  position: relative;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
 }
 
 .view-header {
@@ -254,6 +266,9 @@ p {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 24px;
+  position: relative;
+  z-index: 10;
+  flex-shrink: 0;
 }
 
 .view-header h1 {
@@ -469,13 +484,18 @@ p {
 .table-container {
   background: var(--bg-primary);
   border-radius: 12px;
-  overflow: hidden;
+  overflow: visible;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 10;
+  flex: 1;
 }
 
 .data-table {
   width: 100%;
   border-collapse: collapse;
+  position: relative;
+  z-index: 10;
 }
 
 .data-table thead {
@@ -498,6 +518,17 @@ p {
   font-size: 14px;
   color: var(--text-primary);
   font-weight: 400;
+  position: relative;
+}
+
+.data-table tbody {
+  position: relative;
+  z-index: 10;
+}
+
+.data-table tbody tr {
+  position: relative;
+  z-index: 10;
 }
 
 .data-table tbody tr:hover {
@@ -518,6 +549,8 @@ p {
   cursor: pointer;
   transition: var(--transition);
   letter-spacing: 0.3px;
+  position: relative;
+  z-index: 100;
 }
 
 .btn-primary:hover {
@@ -581,6 +614,8 @@ p {
   cursor: pointer;
   font-size: 16px;
   transition: var(--transition);
+  position: relative;
+  z-index: 100;
 }
 
 .btn-icon:hover {
