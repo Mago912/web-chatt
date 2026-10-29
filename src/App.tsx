@@ -436,51 +436,96 @@ function App() {
   };
 
   // ==========================================
-  // SINCRONIZACIÓN EN TIEMPO REAL (localStorage)
+  // SINCRONIZACIÓN EN TIEMPO REAL (BroadcastChannel + localStorage)
   // ==========================================
   useEffect(() => {
-    // Escuchar cambios de localStorage para sincronización entre pestañas
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'nexo_conversaciones') {
-        const nuevasConversaciones = JSON.parse(e.newValue || '[]');
-        setConversaciones(nuevasConversaciones);
+    // Crear canal de comunicación entre pestañas
+    const channel = new BroadcastChannel('nexo_sync');
+    
+    // Escuchar mensajes de otras pestañas
+    channel.onmessage = (event) => {
+      const { type, data } = event.data;
+      
+      if (type === 'CONVERSACIONES_UPDATE') {
+        setConversaciones(data);
       }
-      if (e.key === 'nexo_ordenes') {
-        const nuevasOrdenes = JSON.parse(e.newValue || '[]');
-        setOrdenes(nuevasOrdenes);
+      if (type === 'ORDENES_UPDATE') {
+        setOrdenes(data);
+      }
+    };
+    
+    // Escuchar cambios de localStorage (fallback)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'nexo_conversaciones' && e.newValue) {
+        try {
+          const nuevasConversaciones = JSON.parse(e.newValue);
+          setConversaciones(nuevasConversaciones);
+        } catch (err) {
+          console.error('Error parsing conversaciones:', err);
+        }
+      }
+      if (e.key === 'nexo_ordenes' && e.newValue) {
+        try {
+          const nuevasOrdenes = JSON.parse(e.newValue);
+          setOrdenes(nuevasOrdenes);
+        } catch (err) {
+          console.error('Error parsing ordenes:', err);
+        }
       }
     };
 
     window.addEventListener('storage', handleStorageChange);
     
-    // POLLING: Leer de localStorage cada segundo (para sincronización entre pestañas)
+    // POLLING: Leer de localStorage cada 500ms (más rápido)
     const syncInterval = setInterval(() => {
+      // Sincronizar conversaciones
       const storedConversaciones = localStorage.getItem('nexo_conversaciones');
       if (storedConversaciones) {
         try {
           const nuevasConversaciones = JSON.parse(storedConversaciones);
-          // Siempre actualizar para asegurar sincronización
           setConversaciones(nuevasConversaciones);
         } catch (e) {
-          console.error('Error parsing conversaciones from localStorage:', e);
+          console.error('Error syncing conversaciones:', e);
         }
       }
-    }, 1000);
+      
+      // Sincronizar órdenes
+      const storedOrdenes = localStorage.getItem('nexo_ordenes');
+      if (storedOrdenes) {
+        try {
+          const nuevasOrdenes = JSON.parse(storedOrdenes);
+          setOrdenes(nuevasOrdenes);
+        } catch (e) {
+          console.error('Error syncing ordenes:', e);
+        }
+      }
+    }, 500);
     
     return () => {
+      channel.close();
       window.removeEventListener('storage', handleStorageChange);
       clearInterval(syncInterval);
     };
   }, []);
 
-  // Sincronizar conversaciones con localStorage
+  // Sincronizar conversaciones con localStorage y BroadcastChannel
   useEffect(() => {
     localStorage.setItem('nexo_conversaciones', JSON.stringify(conversaciones));
+    
+    // Notificar a otras pestañas
+    const channel = new BroadcastChannel('nexo_sync');
+    channel.postMessage({ type: 'CONVERSACIONES_UPDATE', data: conversaciones });
+    channel.close();
   }, [conversaciones]);
 
-  // Sincronizar órdenes con localStorage
+  // Sincronizar órdenes con localStorage y BroadcastChannel
   useEffect(() => {
     localStorage.setItem('nexo_ordenes', JSON.stringify(ordenes));
+    
+    // Notificar a otras pestañas
+    const channel = new BroadcastChannel('nexo_sync');
+    channel.postMessage({ type: 'ORDENES_UPDATE', data: ordenes });
+    channel.close();
   }, [ordenes]);
 
   // Función helper para etiquetas de estado
@@ -680,7 +725,7 @@ function App() {
 
   // Si es cliente, mostrar vista de cliente
   if (currentUser?.rol === 'cliente') {
-    return <ClienteView currentUser={currentUser} conversaciones={conversaciones} setConversaciones={setConversaciones} ordenes={ordenes} usuarios={usuarios} />;
+    return <ClienteView currentUser={currentUser} conversaciones={conversaciones} setConversaciones={setConversaciones} ordenes={ordenes} setOrdenes={setOrdenes} usuarios={usuarios} />;
   }
 
   // ==========================================
@@ -1014,7 +1059,7 @@ function App() {
       <div className="view-container">
         <div className="view-header">
           <div>
-            <h1>Usuarios</h1>
+            <h1>Equipo de Trabajo</h1>
             <p>Gestión de agentes y supervisores</p>
           </div>
           <button className="btn-primary" onClick={() => openModal('create', 'usuario')} disabled={loadingResource === 'usuario'}>
@@ -1338,8 +1383,8 @@ function App() {
             {!sidebarCollapsed && <span>Pedidos</span>}
           </button>
           <button className={`nav-item ${currentView === 'users' ? 'active' : ''}`} onClick={() => setCurrentView('users')}>
-            <span className="nav-icon">👤</span>
-            {!sidebarCollapsed && <span>Usuarios</span>}
+            <span className="nav-icon">👥</span>
+            {!sidebarCollapsed && <span>Equipo de Trabajo</span>}
           </button>
           <button className={`nav-item ${currentView === 'escalations' ? 'active' : ''}`} onClick={() => setCurrentView('escalations')}>
             <span className="nav-icon">📋</span>
@@ -1409,37 +1454,115 @@ function App() {
 // ==========================================
 // CLIENTE VIEW (Widget de Chat en Tiempo Real)
 // ==========================================
-function ClienteView({ currentUser, conversaciones, setConversaciones, ordenes, usuarios }: any) {
+function ClienteView({ currentUser, conversaciones, setConversaciones, ordenes, setOrdenes, usuarios }: any) {
   const [chatActivo, setChatActivo] = useState<any>(null);
   const [mensajeInput, setMensajeInput] = useState('');
   const [pedidoSeleccionado, setPedidoSeleccionado] = useState<string>('');
   const [motivo, setMotivo] = useState('');
   const [showOrderStatus, setShowOrderStatus] = useState(false);
+  const [pedidosActualizados, setPedidosActualizados] = useState<Orden[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Obtener pedidos del cliente
-  const misPedidos = ordenes.filter((o: Orden) => o.clienteNombre === currentUser.nombre);
+  const misPedidos = pedidosActualizados.length > 0 
+    ? pedidosActualizados.filter((o: Orden) => o.clienteNombre === currentUser.nombre)
+    : ordenes.filter((o: Orden) => o.clienteNombre === currentUser.nombre);
 
-  // Sincronizar con localStorage (tiempo real)
+  // Sincronizar con localStorage y BroadcastChannel (tiempo real)
   useEffect(() => {
-    const syncConversaciones = () => {
-      const stored = localStorage.getItem('nexo_conversaciones');
-      if (stored) {
-        const conversacionesActualizadas = JSON.parse(stored);
-        setConversaciones(conversacionesActualizadas);
+    // Crear canal de comunicación
+    const channel = new BroadcastChannel('nexo_sync');
+    
+    // Escuchar mensajes de otras pestañas
+    channel.onmessage = (event) => {
+      const { type, data } = event.data;
+      
+      if (type === 'CONVERSACIONES_UPDATE') {
+        setConversaciones(data);
         
         // Actualizar chat activo si existe
         if (chatActivo) {
-          const chatActualizado = conversacionesActualizadas.find((c: Conversacion) => c.id === chatActivo.id);
+          const chatActualizado = data.find((c: Conversacion) => c.id === chatActivo.id);
           if (chatActualizado) {
             setChatActivo(chatActualizado);
           }
         }
       }
+      if (type === 'ORDENES_UPDATE') {
+        setOrdenes(data);
+        setPedidosActualizados(data);
+      }
+    };
+    
+    // POLLING: Leer de localStorage cada 500ms
+    const syncInterval = setInterval(() => {
+      // Sincronizar conversaciones
+      const storedConversaciones = localStorage.getItem('nexo_conversaciones');
+      if (storedConversaciones) {
+        try {
+          const conversacionesActualizadas = JSON.parse(storedConversaciones);
+          setConversaciones(conversacionesActualizadas);
+          
+          // Actualizar chat activo si existe
+          if (chatActivo) {
+            const chatActualizado = conversacionesActualizadas.find((c: Conversacion) => c.id === chatActivo.id);
+            if (chatActualizado) {
+              setChatActivo(chatActualizado);
+            }
+          }
+        } catch (e) {
+          console.error('Error syncing conversaciones:', e);
+        }
+      }
+      
+      // Sincronizar órdenes
+      const storedOrdenes = localStorage.getItem('nexo_ordenes');
+      if (storedOrdenes) {
+        try {
+          const ordenesActualizadas = JSON.parse(storedOrdenes);
+          setOrdenes(ordenesActualizadas);
+          setPedidosActualizados(ordenesActualizadas);
+        } catch (e) {
+          console.error('Error syncing ordenes:', e);
+        }
+      }
+    }, 500);
+
+    // Escuchar cambios de localStorage (fallback)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'nexo_conversaciones' && e.newValue) {
+        try {
+          const conversacionesActualizadas = JSON.parse(e.newValue);
+          setConversaciones(conversacionesActualizadas);
+          
+          if (chatActivo) {
+            const chatActualizado = conversacionesActualizadas.find((c: Conversacion) => c.id === chatActivo.id);
+            if (chatActualizado) {
+              setChatActivo(chatActualizado);
+            }
+          }
+        } catch (err) {
+          console.error('Error in storage event:', err);
+        }
+      }
+      if (e.key === 'nexo_ordenes' && e.newValue) {
+        try {
+          const ordenesActualizadas = JSON.parse(e.newValue);
+          setOrdenes(ordenesActualizadas);
+          setPedidosActualizados(ordenesActualizadas);
+        } catch (err) {
+          console.error('Error in storage event:', err);
+        }
+      }
     };
 
-    const interval = setInterval(syncConversaciones, 1000); // Sincronizar cada segundo
-    return () => clearInterval(interval);
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      channel.close();
+      clearInterval(syncInterval);
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, [chatActivo]);
 
   // Scroll automático al último mensaje
@@ -1711,8 +1834,9 @@ function ClienteView({ currentUser, conversaciones, setConversaciones, ordenes, 
               )}
 
               {chatActivo.pedido && (() => {
-                // Buscar el pedido actualizado en el array de órdenes
-                const pedidoActualizado = ordenes.find((o: Orden) => o.numero === chatActivo.pedido?.num);
+                // Buscar el pedido actualizado en el array de pedidosActualizados (sincronizado en tiempo real)
+                const pedidosSource = pedidosActualizados.length > 0 ? pedidosActualizados : ordenes;
+                const pedidoActualizado = pedidosSource.find((o: Orden) => o.numero === chatActivo.pedido?.num);
                 const estadoActual = pedidoActualizado?.estado || chatActivo.pedido.estado;
                 const estadoLabelActual = getEstadoLabelPedido(estadoActual);
                 
