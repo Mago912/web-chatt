@@ -990,7 +990,7 @@ function App() {
         <div className="view-header">
           <div>
             <h1>Pedidos</h1>
-            <p>Gestión de pedidos y órdenes · Actualización cada 2 segundos</p>
+            <p>Gestión de pedidos y órdenes</p>
           </div>
           <button className="btn-primary" onClick={() => openModal('create', 'orden')} disabled={loadingResource === 'orden'}>
             {loadingResource === 'orden' ? '⏳ Creando...' : '+ Nuevo Pedido'}
