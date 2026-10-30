@@ -359,12 +359,23 @@ function App() {
   const [loginError, setLoginError] = useState('');
   const [currentView, setCurrentView] = useState<View>('chat');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [conversaciones, setConversaciones] = useState<Conversacion[]>(conversacionesIniciales);
+  
+  // Inicializar estado desde localStorage para persistencia
+  const [conversaciones, setConversaciones] = useState<Conversacion[]>(() => {
+    const stored = localStorage.getItem('nexo_conversaciones');
+    return stored ? JSON.parse(stored) : conversacionesIniciales;
+  });
+  
   const [selectedChatId, setSelectedChatId] = useState<number>(1);
   const [messageInput, setMessageInput] = useState('');
   const [theme, setTheme] = useState<Theme>('light');
   const [clientes, setClientes] = useState<Cliente[]>(clientesIniciales);
-  const [ordenes, setOrdenes] = useState<Orden[]>(ordenesIniciales);
+  
+  const [ordenes, setOrdenes] = useState<Orden[]>(() => {
+    const stored = localStorage.getItem('nexo_ordenes');
+    return stored ? JSON.parse(stored) : ordenesIniciales;
+  });
+  
   const [usuarios, setUsuarios] = useState<Usuario[]>(usuariosIniciales);
   const [notification, setNotification] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
@@ -384,6 +395,27 @@ function App() {
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(Date.now()), 1000);
     return () => clearInterval(timer);
+  }, []);
+
+  // Cargar datos desde localStorage al montar el componente
+  useEffect(() => {
+    const storedConversaciones = localStorage.getItem('nexo_conversaciones');
+    if (storedConversaciones) {
+      try {
+        setConversaciones(JSON.parse(storedConversaciones));
+      } catch (err) {
+        console.error('Error loading conversaciones from localStorage:', err);
+      }
+    }
+
+    const storedOrdenes = localStorage.getItem('nexo_ordenes');
+    if (storedOrdenes) {
+      try {
+        setOrdenes(JSON.parse(storedOrdenes));
+      } catch (err) {
+        console.error('Error loading ordenes from localStorage:', err);
+      }
+    }
   }, []);
 
   const showNotification = (msg: string) => {
@@ -580,16 +612,18 @@ function App() {
     const newMsg: Mensaje = {
       id: Date.now(),
       tipo: 'agente',
-      emisor: 'Sofía Ríos',
+      emisor: currentUser?.nombre || 'Sofía Ríos',
       texto: messageInput,
       hora: new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }),
       leido: false
     };
-    setConversaciones(prev => prev.map(c =>
+    const nuevasConversaciones = conversaciones.map(c =>
       c.id === selectedChatId
         ? { ...c, mensajes: [...c.mensajes, newMsg], ultimoMsg: messageInput, estado: 'activo' as const }
         : c
-    ));
+    );
+    setConversaciones(nuevasConversaciones);
+    localStorage.setItem('nexo_conversaciones', JSON.stringify(nuevasConversaciones));
     setMessageInput('');
     setShowQuickReplies(false);
   };
@@ -606,9 +640,11 @@ function App() {
   };
 
   const takeChat = (id: number) => {
-    setConversaciones(prev => prev.map(c =>
+    const nuevasConversaciones = conversaciones.map(c =>
       c.id === id ? { ...c, estado: 'activo' as const, unread: false } : c
-    ));
+    );
+    setConversaciones(nuevasConversaciones);
+    localStorage.setItem('nexo_conversaciones', JSON.stringify(nuevasConversaciones));
     showNotification('✅ Chat tomado');
   };
 
@@ -620,19 +656,23 @@ function App() {
       hora: new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }),
       leido: true
     };
-    setConversaciones(prev => prev.map(c =>
+    const nuevasConversaciones = conversaciones.map(c =>
       c.id === selectedChatId
         ? { ...c, estado: 'resuelto' as const, mensajes: [...c.mensajes, systemMsg] }
         : c
-    ));
+    );
+    setConversaciones(nuevasConversaciones);
+    localStorage.setItem('nexo_conversaciones', JSON.stringify(nuevasConversaciones));
     showNotification('✅ Chat resuelto');
   };
 
   const deleteChat = (id: number) => {
-    setConversaciones(prev => prev.filter(c => c.id !== id));
-    if (id === selectedChatId && conversaciones.length > 1) {
-      const remaining = conversaciones.filter(c => c.id !== id);
-      setSelectedChatId(remaining[0].id);
+    const nuevasConversaciones = conversaciones.filter(c => c.id !== id);
+    setConversaciones(nuevasConversaciones);
+    localStorage.setItem('nexo_conversaciones', JSON.stringify(nuevasConversaciones));
+    
+    if (id === selectedChatId && nuevasConversaciones.length > 0) {
+      setSelectedChatId(nuevasConversaciones[0].id);
     }
     showNotification('🗑️ Chat eliminado');
   };
@@ -1433,7 +1473,10 @@ function ClienteView({ currentUser, conversaciones, setConversaciones, ordenes, 
       ]
     };
 
-    setConversaciones([...conversaciones, nuevoChat]);
+    // Actualizar estado global y localStorage
+    const nuevasConversaciones = [...conversaciones, nuevoChat];
+    setConversaciones(nuevasConversaciones);
+    localStorage.setItem('nexo_conversaciones', JSON.stringify(nuevasConversaciones));
     setChatActivo(nuevoChat);
   };
 
@@ -1456,10 +1499,16 @@ function ClienteView({ currentUser, conversaciones, setConversaciones, ordenes, 
       ultimoMsg: mensajeInput
     };
 
+    // Actualizar estado local
     setChatActivo(conversacionActualizada);
-    setConversaciones(conversaciones.map((c: Conversacion) => 
+    
+    // Actualizar estado global y localStorage
+    const nuevasConversaciones = conversaciones.map((c: Conversacion) => 
       c.id === chatActivo.id ? conversacionActualizada : c
-    ));
+    );
+    setConversaciones(nuevasConversaciones);
+    localStorage.setItem('nexo_conversaciones', JSON.stringify(nuevasConversaciones));
+    
     setMensajeInput('');
   };
 
