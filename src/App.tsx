@@ -436,17 +436,42 @@ function App() {
   };
 
   // ==========================================
-  // SINCRONIZACIÓN SIMPLIFICADA (Solo localStorage)
+  // SINCRONIZACIÓN EN TIEMPO REAL (localStorage)
   // ==========================================
-  // Sincronizar conversaciones con localStorage (sin BroadcastChannel para evitar ciclos)
+  // Sincronizar conversaciones con localStorage
   useEffect(() => {
     localStorage.setItem('nexo_conversaciones', JSON.stringify(conversaciones));
   }, [conversaciones]);
 
-  // Sincronizar órdenes con localStorage (sin BroadcastChannel para evitar ciclos)
+  // Sincronizar órdenes con localStorage
   useEffect(() => {
     localStorage.setItem('nexo_ordenes', JSON.stringify(ordenes));
   }, [ordenes]);
+
+  // Escuchar cambios de localStorage (para sincronización entre pestañas)
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'nexo_conversaciones' && e.newValue) {
+        try {
+          const nuevasConversaciones = JSON.parse(e.newValue);
+          setConversaciones(nuevasConversaciones);
+        } catch (err) {
+          console.error('Error parsing conversaciones:', err);
+        }
+      }
+      if (e.key === 'nexo_ordenes' && e.newValue) {
+        try {
+          const nuevasOrdenes = JSON.parse(e.newValue);
+          setOrdenes(nuevasOrdenes);
+        } catch (err) {
+          console.error('Error parsing ordenes:', err);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   // Función helper para etiquetas de estado
   const getEstadoLabel = (estado: string): string => {
@@ -959,6 +984,197 @@ function App() {
                     <p>Selecciona una conversación</p>
                   </div>
                 )}
+              </div>
+            </div>
+          </div>
+        );
+      case 'escalations':
+        return (
+          <div className="view-container">
+            <div className="view-header">
+              <div>
+                <h1>Escalaciones</h1>
+                <p>Casos derivados a sectores de 2do nivel</p>
+              </div>
+            </div>
+            <div className="escalations-list">
+              {escalacionesData.map(esc => (
+                <div key={esc.id} className="escalation-card">
+                  <div className="escalation-header">
+                    <span className={`priority-badge ${esc.prioridad}`}>{esc.prioridad}</span>
+                    <span className={`status-badge ${esc.estado}`}>{esc.estado.replace('_', ' ')}</span>
+                    <span className="escalation-date">{esc.fecha}</span>
+                  </div>
+                  <h3>{esc.cliente}</h3>
+                  <p className="escalation-motivo">{esc.motivo}</p>
+                  <p className="escalation-desc">{esc.descripcion}</p>
+                  <div className="escalation-footer">
+                    <span>Asignado a: <strong>{esc.asignadoA}</strong></span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      case 'knowledge':
+        const filteredKB = articulosKB.filter(a =>
+          a.titulo.toLowerCase().includes(searchKB.toLowerCase()) ||
+          a.categoria.toLowerCase().includes(searchKB.toLowerCase())
+        );
+        const selectedKBItem = articulosKB.find(a => a.id === selectedKB);
+        return (
+          <div className="view-container">
+            <div className="view-header">
+              <div>
+                <h1>Base de Conocimiento</h1>
+                <p>Artículos de procedimientos y guías</p>
+              </div>
+            </div>
+            <div className="kb-search">
+              <input type="text" placeholder="Buscar artículos..." value={searchKB} onChange={(e) => setSearchKB(e.target.value)} />
+            </div>
+            <div className="kb-layout">
+              <div className="kb-list">
+                {filteredKB.map(art => (
+                  <div key={art.id} className={`kb-item ${selectedKB === art.id ? 'active' : ''}`} onClick={() => setSelectedKB(art.id)}>
+                    <h4>{art.titulo}</h4>
+                    <span className="kb-category">{art.categoria}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="kb-detail">
+                {selectedKBItem ? (
+                  <>
+                    <span className="kb-category-badge">{selectedKBItem.categoria}</span>
+                    <h2>{selectedKBItem.titulo}</h2>
+                    <div className="kb-content">
+                      {selectedKBItem.contenido.split('\n').map((line, i) => (
+                        <p key={i}>{line}</p>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <p>Selecciona un artículo</p>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      case 'quick-replies':
+        return (
+          <div className="view-container">
+            <div className="view-header">
+              <div>
+                <h1>Respuestas Rápidas</h1>
+                <p>Plantillas predefinidas para agilizar la atención</p>
+              </div>
+            </div>
+            <div className="quick-replies-grid">
+              {respuestasRapidasData.map(qr => (
+                <div key={qr.id} className="quick-reply-card">
+                  <div className="quick-reply-card-header">
+                    <span className="quick-reply-shortcut">{qr.atajo}</span>
+                    <span className="quick-reply-category">{qr.categoria}</span>
+                  </div>
+                  <h3>{qr.titulo}</h3>
+                  <p>{qr.contenido}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      case 'metrics':
+        return (
+          <div className="view-container">
+            <div className="view-header">
+              <div>
+                <h1>Métricas</h1>
+                <p>Indicadores de atención y satisfacción</p>
+              </div>
+            </div>
+            <div className="kpi-grid">
+              <div className="kpi-card">
+                <div className="kpi-content">
+                  <div className="kpi-value">78%</div>
+                  <div className="kpi-label">FCR (First Contact Resolution)</div>
+                </div>
+              </div>
+              <div className="kpi-card">
+                <div className="kpi-content">
+                  <div className="kpi-value">4.7/5</div>
+                  <div className="kpi-label">CSAT (Satisfacción)</div>
+                </div>
+              </div>
+              <div className="kpi-card">
+                <div className="kpi-content">
+                  <div className="kpi-value">1m 42s</div>
+                  <div className="kpi-label">TMR (Tiempo Respuesta)</div>
+                </div>
+              </div>
+              <div className="kpi-card">
+                <div className="kpi-content">
+                  <div className="kpi-value">8m 32s</div>
+                  <div className="kpi-label">AHT (Tiempo Atención)</div>
+                </div>
+              </div>
+            </div>
+            <div className="card">
+              <div className="card-header">
+                <h3>Cumplimiento SLA</h3>
+              </div>
+              <div className="card-body">
+                {[
+                  { label: '1ra respuesta < 2min', value: 92, color: 'var(--success-color)' },
+                  { label: 'Resolución < 15min', value: 78, color: 'var(--primary-color)' },
+                  { label: 'Encuesta completada', value: 85, color: '#8b5cf6' },
+                ].map((item, i) => (
+                  <div key={i} className="metric-progress">
+                    <div className="metric-progress-header">
+                      <span>{item.label}</span>
+                      <span style={{ color: item.color, fontWeight: 600 }}>{item.value}%</span>
+                    </div>
+                    <div className="metric-progress-bar">
+                      <div className="metric-progress-fill" style={{ width: `${item.value}%`, background: item.color }}></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      case 'quality':
+        return (
+          <div className="view-container">
+            <div className="view-header">
+              <div>
+                <h1>Calidad</h1>
+                <p>Monitoreo de atención y evaluaciones</p>
+              </div>
+            </div>
+            <div className="kpi-grid">
+              <div className="kpi-card">
+                <div className="kpi-content">
+                  <div className="kpi-value">92</div>
+                  <div className="kpi-label">Score Promedio</div>
+                </div>
+              </div>
+              <div className="kpi-card">
+                <div className="kpi-content">
+                  <div className="kpi-value">24</div>
+                  <div className="kpi-label">Chats Monitoreados</div>
+                </div>
+              </div>
+              <div className="kpi-card">
+                <div className="kpi-content">
+                  <div className="kpi-value">3</div>
+                  <div className="kpi-label">Capacitaciones</div>
+                </div>
+              </div>
+              <div className="kpi-card">
+                <div className="kpi-content">
+                  <div className="kpi-value">5</div>
+                  <div className="kpi-label">Coaching Pendientes</div>
+                </div>
               </div>
             </div>
           </div>
