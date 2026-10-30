@@ -62,6 +62,7 @@ p {
   height: 100vh;
   width: 100%;
   overflow: hidden;
+  pointer-events: auto;
 }
 
 /* ============================================
@@ -144,6 +145,7 @@ p {
   transition: var(--transition);
   flex-shrink: 0;
   color: var(--text-primary);
+  pointer-events: auto;
 }
 
 .sidebar-toggle:hover {
@@ -176,6 +178,7 @@ p {
   position: relative;
   width: 100%;
   text-align: left;
+  pointer-events: auto;
 }
 
 .nav-item:hover {
@@ -226,6 +229,7 @@ p {
   font-size: 14px;
   transition: var(--transition);
   color: var(--text-primary);
+  pointer-events: auto;
 }
 
 .theme-toggle:hover {
@@ -243,6 +247,8 @@ p {
   height: 100%;
   min-width: 0;
   position: relative;
+  pointer-events: auto;
+  z-index: 1;
 }
 
 /* ============================================
@@ -253,6 +259,8 @@ p {
   min-height: 100%;
   position: relative;
   width: 100%;
+  pointer-events: auto;
+  z-index: 2;
 }
 
 .view-header {
@@ -508,10 +516,12 @@ p {
   color: var(--text-primary);
   font-weight: 400;
   position: relative;
+  pointer-events: auto;
 }
 
 .data-table tbody tr {
   position: relative;
+  pointer-events: auto;
 }
 
 .data-table tbody tr:hover {
@@ -533,6 +543,8 @@ p {
   transition: var(--transition);
   letter-spacing: 0.3px;
   position: relative;
+  pointer-events: auto;
+  z-index: 10;
 }
 
 .btn-primary:hover {
@@ -549,6 +561,9 @@ p {
   font-weight: 600;
   cursor: pointer;
   transition: var(--transition);
+  position: relative;
+  pointer-events: auto;
+  z-index: 10;
 }
 
 .btn-success:hover {
@@ -565,6 +580,9 @@ p {
   font-weight: 600;
   cursor: pointer;
   transition: var(--transition);
+  position: relative;
+  pointer-events: auto;
+  z-index: 10;
 }
 
 .btn-danger:hover {
@@ -581,6 +599,9 @@ p {
   font-weight: 600;
   cursor: pointer;
   transition: var(--transition);
+  pointer-events: auto;
+  position: relative;
+  z-index: 10;
 }
 
 .btn-secondary:hover {
@@ -597,6 +618,8 @@ p {
   font-size: 16px;
   transition: var(--transition);
   position: relative;
+  pointer-events: auto;
+  z-index: 10;
 }
 
 .btn-icon:hover {
@@ -729,6 +752,7 @@ p {
   align-items: center;
   gap: 12px;
   position: relative;
+  pointer-events: auto;
 }
 
 .queue-item:hover {
@@ -802,6 +826,9 @@ p {
   font-size: 14px;
   transition: var(--transition);
   opacity: 0;
+  position: relative;
+  pointer-events: auto;
+  z-index: 20;
 }
 
 .queue-item:hover .queue-take-btn,
@@ -964,6 +991,7 @@ p {
   font-size: 13px;
   transition: var(--transition);
   color: var(--text-primary);
+  pointer-events: auto;
 }
 
 .toolbar-btn:hover {
@@ -1043,6 +1071,7 @@ p {
   background: var(--bg-primary);
   color: var(--text-primary);
   line-height: 1.5;
+  pointer-events: auto;
 }
 
 .chat-input input:focus {
@@ -1059,6 +1088,7 @@ p {
   font-size: 20px;
   cursor: pointer;
   transition: var(--transition);
+  pointer-events: auto;
 }
 
 .chat-input button:hover {
@@ -1178,6 +1208,7 @@ p {
   background: var(--bg-primary);
   color: var(--text-primary);
   line-height: 1.5;
+  pointer-events: auto;
 }
 
 .kb-search input:focus {
@@ -1203,6 +1234,7 @@ p {
   border-radius: 8px;
   cursor: pointer;
   transition: var(--transition);
+  pointer-events: auto;
 }
 
 .kb-item:hover {
@@ -1414,6 +1446,7 @@ p {
   max-width: 500px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   animation: slideUp 0.3s ease;
+  pointer-events: auto;
 }
 
 @keyframes slideUp {
@@ -1452,6 +1485,7 @@ p {
   font-size: 20px;
   color: var(--text-secondary);
   transition: var(--transition);
+  pointer-events: auto;
 }
 
 .modal-close:hover {
@@ -1510,6 +1544,7 @@ p {
   transition: var(--transition);
   background: var(--bg-primary);
   color: var(--text-primary);
+  pointer-events: auto;
 }
 
 .form-group input:focus,
@@ -2762,6 +2797,7 @@ select:focus-visible {
   font-size: 14px;
   font-weight: 500;
   transition: var(--transition);
+  pointer-events: auto;
 }
 
 .logout-button:hover {
@@ -3257,6 +3293,7 @@ select:focus-visible {
   color: var(--text-secondary);
   cursor: pointer;
   transition: var(--transition);
+  pointer-events: auto;
 }
 
 .qr-filter-btn:hover {
@@ -3277,6 +3314,7 @@ select:focus-visible {
   cursor: pointer;
   transition: var(--transition);
   border: 1px solid transparent;
+  pointer-events: auto;
 }
 
 .quick-reply-item:hover {
