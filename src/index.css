@@ -1519,10 +1519,18 @@ body {
 .login-container {
   min-height: 100vh;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 20px;
+  padding: 40px 20px;
+  overflow-y: auto;
+}
+
+@media (min-height: 800px) {
+  .login-container {
+    align-items: center;
+    padding: 20px;
+  }
 }
 
 .login-card {
@@ -1530,8 +1538,16 @@ body {
   border-radius: 16px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   width: 100%;
-  max-width: 420px;
+  max-width: 500px;
   padding: 40px;
+  margin: auto;
+}
+
+@media (max-width: 600px) {
+  .login-card {
+    max-width: 100%;
+    padding: 24px;
+  }
 }
 
 .login-header {
@@ -1647,6 +1663,27 @@ body {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.login-credentials::-webkit-scrollbar {
+  width: 6px;
+}
+
+.login-credentials::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+  border-radius: 3px;
+}
+
+.login-credentials::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+}
+
+.login-credentials::-webkit-scrollbar-thumb:hover {
+  background: var(--text-tertiary);
 }
 
 .credential-item {
