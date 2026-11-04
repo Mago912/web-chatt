@@ -134,6 +134,9 @@ interface Usuario {
   id: number;
   nombre: string;
   email: string;
+  dni: string;
+  password: string;
+  codigo: string;
   rol: string;
   estado: string;
   breakEndsAt: number | null;
@@ -240,20 +243,23 @@ const ordenesIniciales: Orden[] = [
 ];
 
 const usuariosIniciales: Usuario[] = [
-  { id: 1, nombre: 'Sofía Ríos', email: 'sofia.rios@fravega.com', rol: 'agent', estado: 'available', breakEndsAt: null },
-  { id: 2, nombre: 'Martín Pereyra', email: 'martin.pereyra@fravega.com', rol: 'agent', estado: 'busy', breakEndsAt: null },
-  { id: 3, nombre: 'Valentina Torres', email: 'valentina.torres@fravega.com', rol: 'agent', estado: 'available', breakEndsAt: null },
-  { id: 4, nombre: 'Diego Álvarez', email: 'diego.alvarez@fravega.com', rol: 'agent', estado: 'break', breakEndsAt: Date.now() + 15 * 60 * 1000 },
-  { id: 5, nombre: 'Nicolás Romero', email: 'nicolas.romero@fravega.com', rol: 'supervisor', estado: 'available', breakEndsAt: null },
-  { id: 6, nombre: 'Camila Sánchez', email: 'camila.sanchez@fravega.com', rol: 'agent', estado: 'offline', breakEndsAt: null },
+  { id: 1, nombre: 'Sofía Ríos', email: 'sofia.rios@fravega.com', dni: '34567890', password: 'agent123', codigo: '3456', rol: 'agent', estado: 'available', breakEndsAt: null },
+  { id: 2, nombre: 'Martín Pereyra', email: 'martin.pereyra@fravega.com', dni: '45678901', password: 'agent456', codigo: '4567', rol: 'agent', estado: 'busy', breakEndsAt: null },
+  { id: 3, nombre: 'Valentina Torres', email: 'valentina.torres@fravega.com', dni: '56789012', password: 'agent789', codigo: '5678', rol: 'agent', estado: 'available', breakEndsAt: null },
+  { id: 4, nombre: 'Diego Álvarez', email: 'diego.alvarez@fravega.com', dni: '67890123', password: 'agent012', codigo: '6789', rol: 'agent', estado: 'break', breakEndsAt: Date.now() + 15 * 60 * 1000 },
+  { id: 5, nombre: 'Nicolás Romero', email: 'nicolas.romero@fravega.com', dni: '23456789', password: 'super123', codigo: '2345', rol: 'supervisor', estado: 'available', breakEndsAt: null },
+  { id: 6, nombre: 'Camila Sánchez', email: 'camila.sanchez@fravega.com', dni: '78901234', password: 'agent345', codigo: '7890', rol: 'agent', estado: 'offline', breakEndsAt: null },
+  { id: 7, nombre: 'Admin Sistema', email: 'admin@fravega.com', dni: '12345678', password: 'admin123', codigo: '1234', rol: 'admin', estado: 'available', breakEndsAt: null },
+  { id: 8, nombre: 'Juan Pérez', email: 'juan.perez@gmail.com', dni: '99999999', password: 'cliente123', codigo: '9999', rol: 'cliente', estado: 'available', breakEndsAt: null },
 ];
 
-const usuariosPrueba = [
-  { dni: '12345678', password: 'admin123', codigo: '1234', nombre: 'Admin Sistema', rol: 'admin' },
-  { dni: '23456789', password: 'super123', codigo: '2345', nombre: 'Nicolás Romero', rol: 'supervisor' },
-  { dni: '34567890', password: 'agent123', codigo: '3456', nombre: 'Sofía Ríos', rol: 'agente' },
-  { dni: '99999999', password: 'cliente123', codigo: '9999', nombre: 'Juan Pérez', rol: 'cliente' },
-];
+const usuariosPrueba = usuariosIniciales.map(u => ({
+  dni: u.dni,
+  password: u.password,
+  codigo: u.codigo,
+  nombre: u.nombre,
+  rol: u.rol
+}));
 
 // ==========================================
 // LOGIN SCREEN COMPONENT
@@ -325,19 +331,31 @@ function LoginScreen({ onLogin, error }: { onLogin: (dni: string, password: stri
         </form>
 
         <div className="login-footer">
-          <p className="login-hint">💡 Usuarios de prueba:</p>
+          <p className="login-hint">💡 Usuarios disponibles:</p>
           <div className="login-credentials">
             <div className="credential-item">
-              <strong>Admin:</strong> 12345678 / admin123 / 1234
+              <strong>👑 Admin:</strong> DNI 12345678 / Pass admin123 / Código 1234
             </div>
             <div className="credential-item">
-              <strong>Supervisor:</strong> 23456789 / super123 / 2345
+              <strong>🎯 Supervisor:</strong> DNI 23456789 / Pass super123 / Código 2345
             </div>
             <div className="credential-item">
-              <strong>Agente:</strong> 34567890 / agent123 / 3456
+              <strong>💬 Sofía Ríos:</strong> DNI 34567890 / Pass agent123 / Código 3456
             </div>
             <div className="credential-item">
-              <strong>Cliente:</strong> 99999999 / cliente123 / 9999
+              <strong>💬 Martín Pereyra:</strong> DNI 45678901 / Pass agent456 / Código 4567
+            </div>
+            <div className="credential-item">
+              <strong>💬 Valentina Torres:</strong> DNI 56789012 / Pass agent789 / Código 5678
+            </div>
+            <div className="credential-item">
+              <strong>💬 Diego Álvarez:</strong> DNI 67890123 / Pass agent012 / Código 6789
+            </div>
+            <div className="credential-item">
+              <strong>💬 Camila Sánchez:</strong> DNI 78901234 / Pass agent345 / Código 7890
+            </div>
+            <div className="credential-item">
+              <strong>👤 Cliente:</strong> DNI 99999999 / Pass cliente123 / Código 9999
             </div>
           </div>
         </div>
@@ -490,7 +508,7 @@ function App() {
   };
 
   const handleLogin = (dni: string, password: string, codigo: string) => {
-    const user = usuariosPrueba.find(
+    const user = usuarios.find(
       u => u.dni === dni && u.password === password && u.codigo === codigo
     );
 
@@ -574,10 +592,13 @@ function App() {
             ...data,
             id: newId,
             estado: data.estado || 'available',
-            breakEndsAt: null
+            breakEndsAt: null,
+            dni: data.dni || '',
+            password: data.password || '',
+            codigo: data.codigo || ''
           };
           setUsuarios([newUser, ...usuarios]);
-          showNotification(`✅ Usuario ${data.nombre} creado con estado: ${getEstadoLabel(data.estado || 'available')}`);
+          showNotification(`✅ Usuario ${data.nombre} creado exitosamente`);
           setLoadingResource(null);
         }, 800);
       }
@@ -589,7 +610,13 @@ function App() {
         setOrdenes(ordenes.map(o => o.id === selectedItem.id ? { ...o, ...data } : o));
         showNotification('✅ Pedido actualizado');
       } else if (modalResource === 'usuario') {
-        setUsuarios(usuarios.map(u => u.id === selectedItem.id ? { ...u, ...data } : u));
+        setUsuarios(usuarios.map(u => u.id === selectedItem.id ? { 
+          ...u, 
+          ...data,
+          dni: data.dni || u.dni,
+          password: data.password || u.password,
+          codigo: data.codigo || u.codigo
+        } : u));
         showNotification('✅ Usuario actualizado');
       }
     } else if (modalType === 'delete') {
@@ -1013,6 +1040,7 @@ function App() {
                   <tr>
                     <th>Nombre</th>
                     <th>Email</th>
+                    <th>DNI</th>
                     <th>Rol</th>
                     <th>Estado</th>
                     <th>Tiempo de Descanso</th>
@@ -1027,8 +1055,9 @@ function App() {
                     
                     return (
                       <tr key={usuario.id}>
-                        <td>{usuario.nombre}</td>
+                        <td><strong>{usuario.nombre}</strong></td>
                         <td>{usuario.email}</td>
+                        <td><code style={{background: 'var(--bg-tertiary)', padding: '2px 8px', borderRadius: '4px', fontSize: '12px'}}>{usuario.dni}</code></td>
                         <td><span className="role-badge">{usuario.rol}</span></td>
                         <td>
                           <span className={`status-badge ${usuario.estado}`}>
@@ -1050,8 +1079,8 @@ function App() {
                         </td>
                         {hasPermission('canManageUsers') && (
                           <td>
-                            <button className="btn-icon" onClick={() => openModal('edit', 'usuario', usuario)}>✏️</button>
-                            <button className="btn-icon" onClick={() => openModal('delete', 'usuario', usuario)}>🗑️</button>
+                            <button className="btn-icon" onClick={() => openModal('edit', 'usuario', usuario)} title="Editar">✏️</button>
+                            <button className="btn-icon" onClick={() => openModal('delete', 'usuario', usuario)} title="Eliminar">🗑️</button>
                           </td>
                         )}
                       </tr>
@@ -1888,6 +1917,18 @@ function Modal({ type, resource, item, clientes, onSave, onClose }: any) {
                   <div className="form-group">
                     <label>Email *</label>
                     <input type="email" value={formData.email || ''} onChange={e => setFormData({ ...formData, email: e.target.value })} required />
+                  </div>
+                  <div className="form-group">
+                    <label>DNI *</label>
+                    <input type="text" value={formData.dni || ''} onChange={e => setFormData({ ...formData, dni: e.target.value })} required placeholder="Ej: 12345678" />
+                  </div>
+                  <div className="form-group">
+                    <label>Contraseña *</label>
+                    <input type="text" value={formData.password || ''} onChange={e => setFormData({ ...formData, password: e.target.value })} required placeholder="Ej: agent123" />
+                  </div>
+                  <div className="form-group">
+                    <label>Código de Seguridad *</label>
+                    <input type="text" value={formData.codigo || ''} onChange={e => setFormData({ ...formData, codigo: e.target.value })} required maxLength={4} placeholder="Ej: 1234" />
                   </div>
                   <div className="form-group">
                     <label>Rol *</label>
