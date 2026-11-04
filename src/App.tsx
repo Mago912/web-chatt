@@ -7,6 +7,69 @@ import './index.css';
 type View = 'dashboard' | 'chat' | 'customers' | 'orders' | 'users' | 'escalations' | 'knowledge' | 'quick-replies' | 'metrics' | 'quality';
 type MsgType = 'cliente' | 'agente' | 'sistema' | 'bot';
 type Theme = 'light' | 'dark';
+type UserRole = 'admin' | 'supervisor' | 'agente' | 'cliente';
+
+// ==========================================
+// SISTEMA DE PERMISOS POR ROL
+// ==========================================
+interface RolePermissions {
+  canCreate: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
+  canViewAllChats: boolean;
+  canViewMetrics: boolean;
+  canViewUsers: boolean;
+  canManageUsers: boolean;
+  canResolveEscalations: boolean;
+  canAccessViews: View[];
+}
+
+const PERMISSIONS: Record<UserRole, RolePermissions> = {
+  admin: {
+    canCreate: true,
+    canEdit: true,
+    canDelete: true,
+    canViewAllChats: true,
+    canViewMetrics: true,
+    canViewUsers: true,
+    canManageUsers: true,
+    canResolveEscalations: true,
+    canAccessViews: ['dashboard', 'chat', 'customers', 'orders', 'users', 'escalations', 'knowledge', 'quick-replies', 'metrics', 'quality']
+  },
+  supervisor: {
+    canCreate: true,
+    canEdit: true,
+    canDelete: false, // Supervisor NO puede eliminar
+    canViewAllChats: true,
+    canViewMetrics: true,
+    canViewUsers: true,
+    canManageUsers: false, // Supervisor NO puede gestionar usuarios
+    canResolveEscalations: true,
+    canAccessViews: ['dashboard', 'chat', 'customers', 'orders', 'users', 'escalations', 'knowledge', 'quick-replies', 'metrics', 'quality']
+  },
+  agente: {
+    canCreate: false, // Agente NO puede crear
+    canEdit: false, // Agente NO puede editar
+    canDelete: false, // Agente NO puede eliminar
+    canViewAllChats: false, // Solo ve sus propios chats
+    canViewMetrics: false, // Agente NO ve métricas
+    canViewUsers: false, // Agente NO ve usuarios
+    canManageUsers: false,
+    canResolveEscalations: false, // Agente NO resuelve escalaciones
+    canAccessViews: ['dashboard', 'chat', 'knowledge', 'quick-replies']
+  },
+  cliente: {
+    canCreate: false,
+    canEdit: false,
+    canDelete: false,
+    canViewAllChats: false,
+    canViewMetrics: false,
+    canViewUsers: false,
+    canManageUsers: false,
+    canResolveEscalations: false,
+    canAccessViews: []
+  }
+};
 
 interface Mensaje {
   id: number;
@@ -323,6 +386,25 @@ function App() {
 
   const selectedChat = conversaciones.find(c => c.id === selectedChatId) || conversaciones[0];
 
+  // ==========================================
+  // FUNCIONES DE PERMISOS
+  // ==========================================
+  const hasPermission = (permission: keyof RolePermissions): boolean => {
+    if (!currentUser) return false;
+    const role = currentUser.rol as UserRole;
+    const perms = PERMISSIONS[role];
+    if (!perms) return false;
+    return perms[permission] === true;
+  };
+
+  const canAccessView = (view: View): boolean => {
+    if (!currentUser) return false;
+    const role = currentUser.rol as UserRole;
+    const perms = PERMISSIONS[role];
+    if (!perms) return false;
+    return perms.canAccessViews.includes(view);
+  };
+
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(Date.now()), 1000);
     return () => clearInterval(timer);
@@ -603,8 +685,45 @@ function App() {
   }
 
   const renderView = () => {
+    // Verificar si el usuario tiene acceso a la vista actual
+    if (!canAccessView(currentView)) {
+      return (
+        <div className="view-container">
+          <div className="view-header">
+            <div>
+              <h1>Acceso Restringido</h1>
+              <p>No tienes permisos para acceder a esta sección</p>
+            </div>
+          </div>
+          <div style={{textAlign: 'center', padding: '60px 20px'}}>
+            <div style={{fontSize: '64px', marginBottom: '20px'}}>🔒</div>
+            <h2 style={{fontSize: '24px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '12px'}}>
+              Acceso Restringido
+            </h2>
+            <p style={{fontSize: '16px', color: 'var(--text-secondary)', marginBottom: '24px'}}>
+              No tienes permisos para acceder a esta sección.
+            </p>
+            <p style={{fontSize: '14px', color: 'var(--text-tertiary)'}}>
+              Tu rol actual: <strong style={{color: 'var(--primary-color)', textTransform: 'capitalize'}}>{currentUser?.rol}</strong>
+            </p>
+            <button 
+              className="btn-primary" 
+              style={{marginTop: '24px'}}
+              onClick={() => setCurrentView('dashboard')}
+            >
+              Volver al Dashboard
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     switch (currentView) {
       case 'dashboard':
+        const chatsFiltrados = hasPermission('canViewAllChats') 
+          ? conversaciones 
+          : conversaciones.filter(c => c.estado !== 'resuelto');
+        
         return (
           <div className="view-container">
             <div className="view-header">
@@ -617,21 +736,21 @@ function App() {
               <div className="kpi-card">
                 <div className="kpi-icon blue">💬</div>
                 <div className="kpi-content">
-                  <div className="kpi-value">{conversaciones.filter(c => c.estado === 'activo').length}</div>
+                  <div className="kpi-value">{chatsFiltrados.filter(c => c.estado === 'activo').length}</div>
                   <div className="kpi-label">Chats Activos</div>
                 </div>
               </div>
               <div className="kpi-card">
                 <div className="kpi-icon orange">⏳</div>
                 <div className="kpi-content">
-                  <div className="kpi-value">{conversaciones.filter(c => c.estado === 'esperando').length}</div>
+                  <div className="kpi-value">{chatsFiltrados.filter(c => c.estado === 'esperando').length}</div>
                   <div className="kpi-label">En Espera</div>
                 </div>
               </div>
               <div className="kpi-card">
                 <div className="kpi-icon green">✅</div>
                 <div className="kpi-content">
-                  <div className="kpi-value">{conversaciones.filter(c => c.estado === 'resuelto').length}</div>
+                  <div className="kpi-value">{chatsFiltrados.filter(c => c.estado === 'resuelto').length}</div>
                   <div className="kpi-label">Resueltos Hoy</div>
                 </div>
               </div>
@@ -646,16 +765,21 @@ function App() {
           </div>
         );
       case 'chat':
+        // Filtrar chats según permisos
+        const chatsVisibles = hasPermission('canViewAllChats')
+          ? conversaciones
+          : conversaciones.filter(c => c.estado !== 'resuelto'); // Agente solo ve chats activos/en espera
+        
         return (
           <div className="chat-view-container">
             <div className="chat-layout">
               <div className="chat-queue">
                 <div className="queue-header">
                   <h2>Conversaciones</h2>
-                  <span className="queue-count">{conversaciones.length}</span>
+                  <span className="queue-count">{chatsVisibles.length}</span>
                 </div>
                 <div className="queue-list">
-                  {conversaciones.map(chat => (
+                  {chatsVisibles.map(chat => (
                     <div key={chat.id} className={`queue-item ${selectedChatId === chat.id ? 'active' : ''}`} onClick={() => setSelectedChatId(chat.id)}>
                       <div className={`queue-avatar ${chat.color}`}>{chat.avatar}</div>
                       <div className="queue-info">
@@ -666,7 +790,9 @@ function App() {
                       {chat.estado === 'esperando' && (
                         <button className="queue-take-btn" onClick={(e) => { e.stopPropagation(); takeChat(chat.id); }}>✋</button>
                       )}
-                      <button className="queue-delete-btn" onClick={(e) => { e.stopPropagation(); deleteChat(chat.id); }}>🗑️</button>
+                      {hasPermission('canDelete') && (
+                        <button className="queue-delete-btn" onClick={(e) => { e.stopPropagation(); deleteChat(chat.id); }}>🗑️</button>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -687,10 +813,12 @@ function App() {
                         {selectedChat.estado === 'esperando' && (
                           <button className="btn-primary" onClick={() => takeChat(selectedChat.id)}>✋ Tomar</button>
                         )}
-                        {selectedChat.estado === 'activo' && (
+                        {selectedChat.estado === 'activo' && hasPermission('canEdit') && (
                           <button className="btn-success" onClick={resolveChat}>✓ Resolver</button>
                         )}
-                        <button className="btn-danger" onClick={() => deleteChat(selectedChat.id)}>🗑️</button>
+                        {hasPermission('canDelete') && (
+                          <button className="btn-danger" onClick={() => deleteChat(selectedChat.id)}>🗑️</button>
+                        )}
                       </div>
                     </div>
                     <div className="chat-messages">
@@ -769,7 +897,9 @@ function App() {
                 <h1>Clientes</h1>
                 <p>Gestión de clientes del sistema</p>
               </div>
-              <button className="btn-primary" onClick={() => openModal('create', 'cliente')}>+ Nuevo Cliente</button>
+              {hasPermission('canCreate') && (
+                <button className="btn-primary" onClick={() => openModal('create', 'cliente')}>+ Nuevo Cliente</button>
+              )}
             </div>
             <div className="table-container">
               <table className="data-table">
@@ -779,7 +909,7 @@ function App() {
                     <th>DNI</th>
                     <th>Email</th>
                     <th>Teléfono</th>
-                    <th>Acciones</th>
+                    {(hasPermission('canEdit') || hasPermission('canDelete')) && <th>Acciones</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -789,10 +919,16 @@ function App() {
                       <td>{cliente.dni}</td>
                       <td>{cliente.email}</td>
                       <td>{cliente.telefono}</td>
-                      <td>
-                        <button className="btn-icon" onClick={() => openModal('edit', 'cliente', cliente)}>✏️</button>
-                        <button className="btn-icon" onClick={() => openModal('delete', 'cliente', cliente)}>🗑️</button>
-                      </td>
+                      {(hasPermission('canEdit') || hasPermission('canDelete')) && (
+                        <td>
+                          {hasPermission('canEdit') && (
+                            <button className="btn-icon" onClick={() => openModal('edit', 'cliente', cliente)}>✏️</button>
+                          )}
+                          {hasPermission('canDelete') && (
+                            <button className="btn-icon" onClick={() => openModal('delete', 'cliente', cliente)}>🗑️</button>
+                          )}
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
@@ -808,9 +944,11 @@ function App() {
                 <h1>Pedidos</h1>
                 <p>Gestión de pedidos y órdenes</p>
               </div>
-              <button className="btn-primary" onClick={() => openModal('create', 'orden')} disabled={loadingResource === 'orden'}>
-                {loadingResource === 'orden' ? '⏳ Creando...' : '+ Nuevo Pedido'}
-              </button>
+              {hasPermission('canCreate') && (
+                <button className="btn-primary" onClick={() => openModal('create', 'orden')} disabled={loadingResource === 'orden'}>
+                  {loadingResource === 'orden' ? '⏳ Creando...' : '+ Nuevo Pedido'}
+                </button>
+              )}
             </div>
             <div className="table-container">
               <table className="data-table">
@@ -822,7 +960,7 @@ function App() {
                     <th>Monto</th>
                     <th>Estado</th>
                     <th>Fecha</th>
-                    <th>Acciones</th>
+                    {(hasPermission('canEdit') || hasPermission('canDelete')) && <th>Acciones</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -838,10 +976,16 @@ function App() {
                         </span>
                       </td>
                       <td>{orden.fecha}</td>
-                      <td>
-                        <button className="btn-icon" onClick={() => openModal('edit', 'orden', orden)}>✏️</button>
-                        <button className="btn-icon" onClick={() => openModal('delete', 'orden', orden)}>🗑️</button>
-                      </td>
+                      {(hasPermission('canEdit') || hasPermission('canDelete')) && (
+                        <td>
+                          {hasPermission('canEdit') && (
+                            <button className="btn-icon" onClick={() => openModal('edit', 'orden', orden)}>✏️</button>
+                          )}
+                          {hasPermission('canDelete') && (
+                            <button className="btn-icon" onClick={() => openModal('delete', 'orden', orden)}>🗑️</button>
+                          )}
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
@@ -857,9 +1001,11 @@ function App() {
                 <h1>Equipo de Trabajo</h1>
                 <p>Gestión de agentes y supervisores</p>
               </div>
-              <button className="btn-primary" onClick={() => openModal('create', 'usuario')} disabled={loadingResource === 'usuario'}>
-                {loadingResource === 'usuario' ? '⏳ Creando...' : '+ Nuevo Usuario'}
-              </button>
+              {hasPermission('canManageUsers') && (
+                <button className="btn-primary" onClick={() => openModal('create', 'usuario')} disabled={loadingResource === 'usuario'}>
+                  {loadingResource === 'usuario' ? '⏳ Creando...' : '+ Nuevo Usuario'}
+                </button>
+              )}
             </div>
             <div className="table-container">
               <table className="data-table">
@@ -870,7 +1016,7 @@ function App() {
                     <th>Rol</th>
                     <th>Estado</th>
                     <th>Tiempo de Descanso</th>
-                    <th>Acciones</th>
+                    {hasPermission('canManageUsers') && <th>Acciones</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -902,10 +1048,12 @@ function App() {
                             <span className="no-break">-</span>
                           )}
                         </td>
-                        <td>
-                          <button className="btn-icon" onClick={() => openModal('edit', 'usuario', usuario)}>✏️</button>
-                          <button className="btn-icon" onClick={() => openModal('delete', 'usuario', usuario)}>🗑️</button>
-                        </td>
+                        {hasPermission('canManageUsers') && (
+                          <td>
+                            <button className="btn-icon" onClick={() => openModal('edit', 'usuario', usuario)}>✏️</button>
+                            <button className="btn-icon" onClick={() => openModal('delete', 'usuario', usuario)}>🗑️</button>
+                          </td>
+                        )}
                       </tr>
                     );
                   })}
@@ -936,6 +1084,11 @@ function App() {
                   <p className="escalation-desc">{esc.descripcion}</p>
                   <div className="escalation-footer">
                     <span>Asignado a: <strong>{esc.asignadoA}</strong></span>
+                    {hasPermission('canResolveEscalations') && esc.estado !== 'resuelto' && (
+                      <button className="btn-success" style={{marginLeft: 'auto', padding: '8px 16px', fontSize: '13px'}} onClick={() => showNotification('✅ Escalación resuelta')}>
+                        ✓ Resolver
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}
@@ -1115,49 +1268,69 @@ function App() {
         </div>
 
         <nav className="sidebar-nav">
-          <button className={`nav-item ${currentView === 'dashboard' ? 'active' : ''}`} onClick={() => setCurrentView('dashboard')}>
-            <span className="nav-icon">📊</span>
-            {!sidebarCollapsed && <span>Dashboard</span>}
-          </button>
-          <button className={`nav-item ${currentView === 'chat' ? 'active' : ''}`} onClick={() => setCurrentView('chat')}>
-            <span className="nav-icon">💬</span>
-            {!sidebarCollapsed && <span>Chats</span>}
-            {conversaciones.filter(c => c.unread).length > 0 && !sidebarCollapsed && (
-              <span className="nav-badge">{conversaciones.filter(c => c.unread).length}</span>
-            )}
-          </button>
-          <button className={`nav-item ${currentView === 'customers' ? 'active' : ''}`} onClick={() => setCurrentView('customers')}>
-            <span className="nav-icon">👥</span>
-            {!sidebarCollapsed && <span>Clientes</span>}
-          </button>
-          <button className={`nav-item ${currentView === 'orders' ? 'active' : ''}`} onClick={() => setCurrentView('orders')}>
-            <span className="nav-icon">📦</span>
-            {!sidebarCollapsed && <span>Pedidos</span>}
-          </button>
-          <button className={`nav-item ${currentView === 'users' ? 'active' : ''}`} onClick={() => setCurrentView('users')}>
-            <span className="nav-icon">👥</span>
-            {!sidebarCollapsed && <span>Equipo de Trabajo</span>}
-          </button>
-          <button className={`nav-item ${currentView === 'escalations' ? 'active' : ''}`} onClick={() => setCurrentView('escalations')}>
-            <span className="nav-icon">📋</span>
-            {!sidebarCollapsed && <span>Escalaciones</span>}
-          </button>
-          <button className={`nav-item ${currentView === 'knowledge' ? 'active' : ''}`} onClick={() => setCurrentView('knowledge')}>
-            <span className="nav-icon">📚</span>
-            {!sidebarCollapsed && <span>Conocimiento</span>}
-          </button>
-          <button className={`nav-item ${currentView === 'quick-replies' ? 'active' : ''}`} onClick={() => setCurrentView('quick-replies')}>
-            <span className="nav-icon">⚡</span>
-            {!sidebarCollapsed && <span>Rápidas</span>}
-          </button>
-          <button className={`nav-item ${currentView === 'metrics' ? 'active' : ''}`} onClick={() => setCurrentView('metrics')}>
-            <span className="nav-icon">📈</span>
-            {!sidebarCollapsed && <span>Métricas</span>}
-          </button>
-          <button className={`nav-item ${currentView === 'quality' ? 'active' : ''}`} onClick={() => setCurrentView('quality')}>
-            <span className="nav-icon">✅</span>
-            {!sidebarCollapsed && <span>Calidad</span>}
-          </button>
+          {canAccessView('dashboard') && (
+            <button className={`nav-item ${currentView === 'dashboard' ? 'active' : ''}`} onClick={() => setCurrentView('dashboard')}>
+              <span className="nav-icon">📊</span>
+              {!sidebarCollapsed && <span>Dashboard</span>}
+            </button>
+          )}
+          {canAccessView('chat') && (
+            <button className={`nav-item ${currentView === 'chat' ? 'active' : ''}`} onClick={() => setCurrentView('chat')}>
+              <span className="nav-icon">💬</span>
+              {!sidebarCollapsed && <span>Chats</span>}
+              {conversaciones.filter(c => c.unread).length > 0 && !sidebarCollapsed && (
+                <span className="nav-badge">{conversaciones.filter(c => c.unread).length}</span>
+              )}
+            </button>
+          )}
+          {canAccessView('customers') && (
+            <button className={`nav-item ${currentView === 'customers' ? 'active' : ''}`} onClick={() => setCurrentView('customers')}>
+              <span className="nav-icon">👥</span>
+              {!sidebarCollapsed && <span>Clientes</span>}
+            </button>
+          )}
+          {canAccessView('orders') && (
+            <button className={`nav-item ${currentView === 'orders' ? 'active' : ''}`} onClick={() => setCurrentView('orders')}>
+              <span className="nav-icon">📦</span>
+              {!sidebarCollapsed && <span>Pedidos</span>}
+            </button>
+          )}
+          {canAccessView('users') && (
+            <button className={`nav-item ${currentView === 'users' ? 'active' : ''}`} onClick={() => setCurrentView('users')}>
+              <span className="nav-icon">👥</span>
+              {!sidebarCollapsed && <span>Equipo de Trabajo</span>}
+            </button>
+          )}
+          {canAccessView('escalations') && (
+            <button className={`nav-item ${currentView === 'escalations' ? 'active' : ''}`} onClick={() => setCurrentView('escalations')}>
+              <span className="nav-icon">📋</span>
+              {!sidebarCollapsed && <span>Escalaciones</span>}
+            </button>
+          )}
+          {canAccessView('knowledge') && (
+            <button className={`nav-item ${currentView === 'knowledge' ? 'active' : ''}`} onClick={() => setCurrentView('knowledge')}>
+              <span className="nav-icon">📚</span>
+              {!sidebarCollapsed && <span>Conocimiento</span>}
+            </button>
+          )}
+          {canAccessView('quick-replies') && (
+            <button className={`nav-item ${currentView === 'quick-replies' ? 'active' : ''}`} onClick={() => setCurrentView('quick-replies')}>
+              <span className="nav-icon">⚡</span>
+              {!sidebarCollapsed && <span>Rápidas</span>}
+            </button>
+          )}
+          {canAccessView('metrics') && (
+            <button className={`nav-item ${currentView === 'metrics' ? 'active' : ''}`} onClick={() => setCurrentView('metrics')}>
+              <span className="nav-icon">📈</span>
+              {!sidebarCollapsed && <span>Métricas</span>}
+            </button>
+          )}
+          {canAccessView('quality') && (
+            <button className={`nav-item ${currentView === 'quality' ? 'active' : ''}`} onClick={() => setCurrentView('quality')}>
+              <span className="nav-icon">✅</span>
+              {!sidebarCollapsed && <span>Calidad</span>}
+            </button>
+          )}
         </nav>
 
         <div className="sidebar-footer">
