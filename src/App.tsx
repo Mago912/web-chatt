@@ -117,6 +117,8 @@ interface Cliente {
   dni: string;
   email: string;
   telefono: string;
+  password: string;
+  codigo: string;
 }
 
 interface Orden {
@@ -221,13 +223,13 @@ const conversacionesIniciales: Conversacion[] = [
 ];
 
 const clientesIniciales: Cliente[] = [
-  { id: 1, nombre: 'María González', dni: '32.456.789', email: 'maria.gonzalez@gmail.com', telefono: '+54 11 5542-8891' },
-  { id: 2, nombre: 'Carlos Rodríguez', dni: '28.901.234', email: 'c.rodriguez@outlook.com', telefono: '+54 11 4421-3356' },
-  { id: 3, nombre: 'Lucía Fernández', dni: '35.678.432', email: 'lucia.fernandez@yahoo.com', telefono: '+54 11 6678-1122' },
-  { id: 4, nombre: 'Roberto Martínez', dni: '24.112.567', email: 'r.martinez@gmail.com', telefono: '+54 11 3345-7788' },
-  { id: 5, nombre: 'Ana López', dni: '30.234.890', email: 'ana.lopez@hotmail.com', telefono: '+54 11 5567-9900' },
-  { id: 6, nombre: 'Pedro Sánchez', dni: '27.890.123', email: 'pedro.sanchez@gmail.com', telefono: '+54 11 4456-7788' },
-  { id: 7, nombre: 'Juan Pérez', dni: '99.999.999', email: 'juan.perez@gmail.com', telefono: '+54 11 6677-8899' },
+  { id: 1, nombre: 'María González', dni: '32456789', email: 'maria.gonzalez@gmail.com', telefono: '+54 11 5542-8891', password: 'maria123', codigo: '1111' },
+  { id: 2, nombre: 'Carlos Rodríguez', dni: '28901234', email: 'c.rodriguez@outlook.com', telefono: '+54 11 4421-3356', password: 'carlos123', codigo: '2222' },
+  { id: 3, nombre: 'Lucía Fernández', dni: '35678432', email: 'lucia.fernandez@yahoo.com', telefono: '+54 11 6678-1122', password: 'lucia123', codigo: '3333' },
+  { id: 4, nombre: 'Roberto Martínez', dni: '24112567', email: 'r.martinez@gmail.com', telefono: '+54 11 3345-7788', password: 'roberto123', codigo: '4444' },
+  { id: 5, nombre: 'Ana López', dni: '30234890', email: 'ana.lopez@hotmail.com', telefono: '+54 11 5567-9900', password: 'ana123', codigo: '5555' },
+  { id: 6, nombre: 'Pedro Sánchez', dni: '27890123', email: 'pedro.sanchez@gmail.com', telefono: '+54 11 4456-7788', password: 'pedro123', codigo: '6666' },
+  { id: 7, nombre: 'Juan Pérez', dni: '99999999', email: 'juan.perez@gmail.com', telefono: '+54 11 6677-8899', password: 'cliente123', codigo: '9999' },
 ];
 
 const ordenesIniciales: Orden[] = [
@@ -340,22 +342,43 @@ function LoginScreen({ onLogin, error }: { onLogin: (dni: string, password: stri
               <strong>🎯 Supervisor:</strong> DNI 23456789 / Pass super123 / Código 2345
             </div>
             <div className="credential-item">
-              <strong>💬 Agente (Sofía):</strong> DNI 34567890 / Pass agent123 / Código 3456
+              <strong>💬 Sofía Ríos:</strong> DNI 34567890 / Pass agent123 / Código 3456
             </div>
             <div className="credential-item">
-              <strong>💬 Agente (Martín):</strong> DNI 45678901 / Pass agent456 / Código 4567
+              <strong>💬 Martín Pereyra:</strong> DNI 45678901 / Pass agent456 / Código 4567
             </div>
             <div className="credential-item">
-              <strong>💬 Agente (Valentina):</strong> DNI 56789012 / Pass agent789 / Código 5678
+              <strong>💬 Valentina Torres:</strong> DNI 56789012 / Pass agent789 / Código 5678
             </div>
             <div className="credential-item">
-              <strong>💬 Agente (Diego):</strong> DNI 67890123 / Pass agent012 / Código 6789
+              <strong>💬 Diego Álvarez:</strong> DNI 67890123 / Pass agent012 / Código 6789
             </div>
             <div className="credential-item">
-              <strong>💬 Agente (Camila):</strong> DNI 78901234 / Pass agent345 / Código 7890
+              <strong>💬 Camila Sánchez:</strong> DNI 78901234 / Pass agent345 / Código 7890
+            </div>
+            <div className="credential-item" style={{marginTop: '12px', borderTop: '1px solid var(--border-color)', paddingTop: '12px'}}>
+              <strong>👤 Clientes:</strong>
             </div>
             <div className="credential-item">
-              <strong>👤 Cliente:</strong> DNI 99999999 / Pass cliente123 / Código 9999
+              <strong>María González:</strong> DNI 32456789 / Pass maria123 / Código 1111
+            </div>
+            <div className="credential-item">
+              <strong>Carlos Rodríguez:</strong> DNI 28901234 / Pass carlos123 / Código 2222
+            </div>
+            <div className="credential-item">
+              <strong>Lucía Fernández:</strong> DNI 35678432 / Pass lucia123 / Código 3333
+            </div>
+            <div className="credential-item">
+              <strong>Roberto Martínez:</strong> DNI 24112567 / Pass roberto123 / Código 4444
+            </div>
+            <div className="credential-item">
+              <strong>Ana López:</strong> DNI 30234890 / Pass ana123 / Código 5555
+            </div>
+            <div className="credential-item">
+              <strong>Pedro Sánchez:</strong> DNI 27890123 / Pass pedro123 / Código 6666
+            </div>
+            <div className="credential-item">
+              <strong>Juan Pérez:</strong> DNI 99999999 / Pass cliente123 / Código 9999
             </div>
           </div>
         </div>
@@ -508,6 +531,7 @@ function App() {
   };
 
   const handleLogin = (dni: string, password: string, codigo: string) => {
+    // Buscar en usuarios (admin, supervisor, agent)
     const user = usuarios.find(
       u => u.dni === dni && u.password === password && u.codigo === codigo
     );
@@ -517,9 +541,23 @@ function App() {
       setCurrentUser(user);
       setLoginError('');
       showNotification(`✅ Bienvenido, ${user.nombre}`);
-    } else {
-      setLoginError('DNI, contraseña o código de seguridad incorrectos');
+      return;
     }
+
+    // Buscar en clientes
+    const client = clientes.find(
+      c => c.dni === dni && c.password === password && c.codigo === codigo
+    );
+
+    if (client) {
+      setIsAuthenticated(true);
+      setCurrentUser({ ...client, rol: 'client', estado: 'available', breakEndsAt: null });
+      setLoginError('');
+      showNotification(`✅ Bienvenido, ${client.nombre}`);
+      return;
+    }
+
+    setLoginError('DNI, contraseña o código de seguridad incorrectos');
   };
 
   const handleLogout = () => {
@@ -566,7 +604,13 @@ function App() {
         setLoadingResource('cliente');
         setTimeout(() => {
           const newId = Math.max(...clientes.map(c => c.id)) + 1;
-          setClientes([...clientes, { ...data, id: newId }]);
+          const newClient = {
+            ...data,
+            id: newId,
+            password: data.password || '',
+            codigo: data.codigo || ''
+          };
+          setClientes([...clientes, newClient]);
           showNotification('✅ Cliente creado exitosamente');
           setLoadingResource(null);
         }, 800);
@@ -937,6 +981,12 @@ function App() {
                     <th>DNI</th>
                     <th>Email</th>
                     <th>Teléfono</th>
+                    {hasPermission('canManageUsers') && (
+                      <>
+                        <th>Contraseña</th>
+                        <th>Código</th>
+                      </>
+                    )}
                     {(hasPermission('canEdit') || hasPermission('canDelete')) && <th>Acciones</th>}
                   </tr>
                 </thead>
@@ -944,9 +994,15 @@ function App() {
                   {clientes.map(cliente => (
                     <tr key={cliente.id}>
                       <td>{cliente.nombre}</td>
-                      <td>{cliente.dni}</td>
+                      <td><code style={{background: 'var(--bg-tertiary)', padding: '2px 8px', borderRadius: '4px', fontSize: '12px'}}>{cliente.dni}</code></td>
                       <td>{cliente.email}</td>
                       <td>{cliente.telefono}</td>
+                      {hasPermission('canManageUsers') && (
+                        <>
+                          <td><code style={{background: 'var(--bg-tertiary)', padding: '2px 8px', borderRadius: '4px', fontSize: '12px'}}>{cliente.password}</code></td>
+                          <td><code style={{background: 'var(--bg-tertiary)', padding: '2px 8px', borderRadius: '4px', fontSize: '12px'}}>{cliente.codigo}</code></td>
+                        </>
+                      )}
                       {(hasPermission('canEdit') || hasPermission('canDelete')) && (
                         <td>
                           {hasPermission('canEdit') && (
@@ -1865,7 +1921,7 @@ function Modal({ type, resource, item, clientes, onSave, onClose }: any) {
                   </div>
                   <div className="form-group">
                     <label>DNI *</label>
-                    <input type="text" value={formData.dni || ''} onChange={e => setFormData({ ...formData, dni: e.target.value })} required />
+                    <input type="text" value={formData.dni || ''} onChange={e => setFormData({ ...formData, dni: e.target.value })} required placeholder="Ej: 12345678" />
                   </div>
                   <div className="form-group">
                     <label>Email</label>
@@ -1874,6 +1930,14 @@ function Modal({ type, resource, item, clientes, onSave, onClose }: any) {
                   <div className="form-group">
                     <label>Teléfono</label>
                     <input type="text" value={formData.telefono || ''} onChange={e => setFormData({ ...formData, telefono: e.target.value })} />
+                  </div>
+                  <div className="form-group">
+                    <label>Contraseña *</label>
+                    <input type="password" value={formData.password || ''} onChange={e => setFormData({ ...formData, password: e.target.value })} required placeholder="Ej: cliente123" />
+                  </div>
+                  <div className="form-group">
+                    <label>Código de Seguridad *</label>
+                    <input type="text" value={formData.codigo || ''} onChange={e => setFormData({ ...formData, codigo: e.target.value })} required maxLength={4} placeholder="Ej: 1234" />
                   </div>
                 </>
               )}
