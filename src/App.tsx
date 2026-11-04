@@ -7,7 +7,7 @@ import './index.css';
 type View = 'dashboard' | 'chat' | 'customers' | 'orders' | 'users' | 'escalations' | 'knowledge' | 'quick-replies' | 'metrics' | 'quality';
 type MsgType = 'cliente' | 'agente' | 'sistema' | 'bot';
 type Theme = 'light' | 'dark';
-type UserRole = 'admin' | 'supervisor' | 'agente' | 'cliente';
+type UserRole = 'admin' | 'supervisor' | 'agent' | 'client';
 
 // ==========================================
 // SISTEMA DE PERMISOS POR ROL
@@ -47,7 +47,7 @@ const PERMISSIONS: Record<UserRole, RolePermissions> = {
     canResolveEscalations: true,
     canAccessViews: ['dashboard', 'chat', 'customers', 'orders', 'users', 'escalations', 'knowledge', 'quick-replies', 'metrics', 'quality']
   },
-  agente: {
+  agent: {
     canCreate: false, // Agente NO puede crear
     canEdit: false, // Agente NO puede editar
     canDelete: false, // Agente NO puede eliminar
@@ -58,7 +58,7 @@ const PERMISSIONS: Record<UserRole, RolePermissions> = {
     canResolveEscalations: false, // Agente NO resuelve escalaciones
     canAccessViews: ['dashboard', 'chat', 'knowledge', 'quick-replies']
   },
-  cliente: {
+  client: {
     canCreate: false,
     canEdit: false,
     canDelete: false,
@@ -250,7 +250,7 @@ const usuariosIniciales: Usuario[] = [
   { id: 5, nombre: 'Nicolás Romero', email: 'nicolas.romero@fravega.com', dni: '23456789', password: 'super123', codigo: '2345', rol: 'supervisor', estado: 'available', breakEndsAt: null },
   { id: 6, nombre: 'Camila Sánchez', email: 'camila.sanchez@fravega.com', dni: '78901234', password: 'agent345', codigo: '7890', rol: 'agent', estado: 'offline', breakEndsAt: null },
   { id: 7, nombre: 'Admin Sistema', email: 'admin@fravega.com', dni: '12345678', password: 'admin123', codigo: '1234', rol: 'admin', estado: 'available', breakEndsAt: null },
-  { id: 8, nombre: 'Juan Pérez', email: 'juan.perez@gmail.com', dni: '99999999', password: 'cliente123', codigo: '9999', rol: 'cliente', estado: 'available', breakEndsAt: null },
+  { id: 8, nombre: 'Juan Pérez', email: 'juan.perez@gmail.com', dni: '99999999', password: 'cliente123', codigo: '9999', rol: 'client', estado: 'available', breakEndsAt: null },
 ];
 
 const usuariosPrueba = usuariosIniciales.map(u => ({
@@ -340,19 +340,19 @@ function LoginScreen({ onLogin, error }: { onLogin: (dni: string, password: stri
               <strong>🎯 Supervisor:</strong> DNI 23456789 / Pass super123 / Código 2345
             </div>
             <div className="credential-item">
-              <strong>💬 Sofía Ríos:</strong> DNI 34567890 / Pass agent123 / Código 3456
+              <strong>💬 Agente (Sofía):</strong> DNI 34567890 / Pass agent123 / Código 3456
             </div>
             <div className="credential-item">
-              <strong>💬 Martín Pereyra:</strong> DNI 45678901 / Pass agent456 / Código 4567
+              <strong>💬 Agente (Martín):</strong> DNI 45678901 / Pass agent456 / Código 4567
             </div>
             <div className="credential-item">
-              <strong>💬 Valentina Torres:</strong> DNI 56789012 / Pass agent789 / Código 5678
+              <strong>💬 Agente (Valentina):</strong> DNI 56789012 / Pass agent789 / Código 5678
             </div>
             <div className="credential-item">
-              <strong>💬 Diego Álvarez:</strong> DNI 67890123 / Pass agent012 / Código 6789
+              <strong>💬 Agente (Diego):</strong> DNI 67890123 / Pass agent012 / Código 6789
             </div>
             <div className="credential-item">
-              <strong>💬 Camila Sánchez:</strong> DNI 78901234 / Pass agent345 / Código 7890
+              <strong>💬 Agente (Camila):</strong> DNI 78901234 / Pass agent345 / Código 7890
             </div>
             <div className="credential-item">
               <strong>👤 Cliente:</strong> DNI 99999999 / Pass cliente123 / Código 9999
@@ -591,6 +591,7 @@ function App() {
           const newUser = {
             ...data,
             id: newId,
+            rol: data.rol || 'agent',
             estado: data.estado || 'available',
             breakEndsAt: null,
             dni: data.dni || '',
@@ -707,7 +708,7 @@ function App() {
     return <LoginScreen onLogin={handleLogin} error={loginError} />;
   }
 
-  if (currentUser?.rol === 'cliente') {
+  if (currentUser?.rol === 'client') {
     return <ClienteView currentUser={currentUser} conversaciones={conversaciones} setConversaciones={setConversaciones} ordenes={ordenes} setOrdenes={setOrdenes} usuarios={usuarios} onLogout={handleLogout} />;
   }
 
@@ -1924,7 +1925,7 @@ function Modal({ type, resource, item, clientes, onSave, onClose }: any) {
                   </div>
                   <div className="form-group">
                     <label>Contraseña *</label>
-                    <input type="text" value={formData.password || ''} onChange={e => setFormData({ ...formData, password: e.target.value })} required placeholder="Ej: agent123" />
+                    <input type="password" value={formData.password || ''} onChange={e => setFormData({ ...formData, password: e.target.value })} required placeholder="Ej: agent123" />
                   </div>
                   <div className="form-group">
                     <label>Código de Seguridad *</label>
